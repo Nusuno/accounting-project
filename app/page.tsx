@@ -12,24 +12,24 @@ type FieldType = {
 
 const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
   console.log('Success:', values);
-  const isLogin = await Login(values.username, values.password)
+  const isLogin = await Login(values.username, values.password);
   if (isLogin) {
-    alert('เข้าสู่ระบบแล้ว')
+    alert('เข้าสู่ระบบแล้ว');
   } else {
-    alert('username หรือ password ไม่ถูกต้อง')
+    alert('username หรือ password ไม่ถูกต้อง');
   }
 };
 
 const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
   console.log('Failed:', errorInfo);
-  message.error("กรุณากรอกข้อมูลให้ครบถ้วน")
+  message.error('กรุณากรอกข้อมูลให้ครบถ้วน');
 };
 
 const LoginPage: React.FC = () => {
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
-      <div className="bg-white border border-gray-200 shadow-xl rounded-2xl w-[400px] p-8">
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">เข้าสู่ระบบ</h2>
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-100 to-teal-100">
+      <div className="bg-white border border-gray-100 shadow-md rounded-2xl w-[400px] p-8">
+        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">เข้าสู่ระบบ</h2>
 
         <Form
           name="login"
@@ -50,18 +50,12 @@ const LoginPage: React.FC = () => {
           <Form.Item<FieldType>
             label="รหัสผ่าน"
             name="password"
-            rules={[
-              { required: true, message: 'กรุณากรอกรหัสผ่าน' },
-            
-            ]}
+            rules={[{ required: true, message: 'กรุณากรอกรหัสผ่าน' }]}
           >
             <Input.Password placeholder="กรอกรหัสผ่าน" />
           </Form.Item>
 
-          <Form.Item<FieldType> 
-            name="remember" 
-            valuePropName="checked" 
-            className="mb-4">
+          <Form.Item<FieldType> name="remember" valuePropName="checked" className="mb-4">
             <Checkbox>จดจำการเข้าสู่ระบบ</Checkbox>
           </Form.Item>
 
