@@ -1,10 +1,16 @@
 'use server'
 
-export async function Login(username: string, password: string) {
+import { prisma } from "@/lib/prisma"
 
-    if (username === 'test' && password === '1234') {
-        return true;
+export async function Login(username: string, password: string) {
+    const user = await prisma.user.findFirst({ where: { username: username, } });
+    if (user) {
+        if (user.password === password) {
+            return true
+        } else {
+            return false 
+        }
     } else {
-        return false;
+        return false
     }
 }
