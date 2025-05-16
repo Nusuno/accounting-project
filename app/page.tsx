@@ -1,20 +1,28 @@
 "use client";
 import React from 'react';
-import { Button, Checkbox, Form, Input } from 'antd';
+import { Button, Checkbox, Form, Input, message } from 'antd';
 import type { FormProps } from 'antd';
+import { Login } from './action';
 
 type FieldType = {
-  username?: string;
-  password?: string;
+  username: string;
+  password: string;
   remember?: boolean;
 };
 
-const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
+const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
   console.log('Success:', values);
+  const isLogin = await Login(values.username, values.password)
+  if (isLogin) {
+    alert('เข้าสู่ระบบแล้ว')
+  } else {
+    alert('username หรือ password ไม่ถูกต้อง')
+  }
 };
 
 const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
   console.log('Failed:', errorInfo);
+  message.error("กรุณากรอกข้อมูลให้ครบถ้วน")
 };
 
 const LoginPage: React.FC = () => {
@@ -44,7 +52,7 @@ const LoginPage: React.FC = () => {
             name="password"
             rules={[
               { required: true, message: 'กรุณากรอกรหัสผ่าน' },
-              { min: 8, message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' },
+            
             ]}
           >
             <Input.Password placeholder="กรอกรหัสผ่าน" />
