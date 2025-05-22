@@ -1,9 +1,10 @@
 "use client";
-import React from 'react';
-import { Button, Checkbox, Form, Input, message } from 'antd';
-import type { FormProps } from 'antd';
-import { Login } from './action';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Button, Form, Input, message } from "antd";
+import type { FormProps } from "antd";
+import { Login } from "./action";
+import { motion } from "framer-motion";
+import Link from "next/link";
 
 type FieldType = {
   username: string;
@@ -11,17 +12,17 @@ type FieldType = {
   remember?: boolean;
 };
 
-const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
   const isLogin = await Login(values.username, values.password);
   if (isLogin) {
-    alert('เข้าสู่ระบบแล้ว');
+    alert("เข้าสู่ระบบแล้ว");
   } else {
-    alert('username หรือ password ไม่ถูกต้อง');
+    alert("username หรือ password ไม่ถูกต้อง");
   }
 };
 
-const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = () => {
-  message.error('กรุณากรอกข้อมูลให้ครบถ้วน');
+const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = () => {
+  message.error("กรุณากรอกข้อมูลให้ครบถ้วน");
 };
 
 const LoginPage: React.FC = () => {
@@ -45,7 +46,9 @@ const LoginPage: React.FC = () => {
           />
         </div>
 
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">เข้าสู่ระบบ</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">
+          เข้าสู่ระบบ
+        </h2>
 
         <Form
           name="login"
@@ -58,7 +61,7 @@ const LoginPage: React.FC = () => {
           <Form.Item<FieldType>
             label="ชื่อผู้ใช้"
             name="username"
-            rules={[{ required: true, message: 'กรุณากรอกชื่อผู้ใช้' }]}
+            rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
           >
             <Input placeholder="กรอกชื่อผู้ใช้" className="rounded-md" />
           </Form.Item>
@@ -66,13 +69,9 @@ const LoginPage: React.FC = () => {
           <Form.Item<FieldType>
             label="รหัสผ่าน"
             name="password"
-            rules={[{ required: true, message: 'กรุณากรอกรหัสผ่าน' }]}
+            rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
           >
             <Input.Password placeholder="กรอกรหัสผ่าน" className="rounded-md" />
-          </Form.Item>
-
-          <Form.Item<FieldType> name="remember" valuePropName="checked" className="mb-4">
-            <Checkbox className="text-gray-600">จดจำการเข้าสู่ระบบ</Checkbox>
           </Form.Item>
 
           <Form.Item>
@@ -86,6 +85,9 @@ const LoginPage: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
+        <div className="text-center text-black">
+          <Link href="/register">สมัครสมาชิก</Link>
+        </div>
       </motion.div>
     </div>
   );
