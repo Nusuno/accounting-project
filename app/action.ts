@@ -60,7 +60,7 @@ export async function Register(username: string, password: string) {
   await prisma.user.create({
     data: {
       username: username,
-      password: password, // ควรทำการ hash รหัสผ่านตรงนี้ก่อนบันทึก
+      password: password // ควรทำการ hash รหัสผ่านตรงนี้ก่อนบันทึก
     },
   });
 
