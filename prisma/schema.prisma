@@ -1,29 +1,37 @@
-// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id          String       @id @default(cuid())
-  username    String        @unique // ชื่อผู้ใช้ต้องไม่ซ้ำกัน
-  password    String // รหัสผ่านจะถูกเก็บในรูปแบบที่ hash แล้ว
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  Transaction Transaction[]
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ความสัมพันธ์กับ Transaction
+  transactions Transaction[]
 }
 
 model Transaction {
-  id        Int      @id @default(autoincrement())
-  type      String   @default("รายจ่าย")
-  category  String   @default("อาหาร")
-  amount    Float    @default(0)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String          @id @default(cuid())
+  title     String
+  amount    Float
+  type      TransactionType
+  category  String
+  createdAt DateTime        @default(now())
+
+  // ความสัมพันธ์กับผู้ใช้
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
 }

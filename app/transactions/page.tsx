@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import { useState } from "react";
 import { useUserStore } from "@/store/user";
 import MenuBar from "@/components/MenuBar";
@@ -13,12 +14,50 @@ export default function TransactionsPage() {
   const userStore = useUserStore();
 
   const handleSubmit = (e: React.FormEvent) => {
+=======
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/store/user';
+
+export default function TransactionsPage() {
+  const [type, setType] = useState('รายจ่าย');
+  const [category, setCategory] = useState('🍞');
+  const [amount, setAmount] = useState('');
+  const userStore = useUserStore();
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+>>>>>>> b7b3c03136bb851dedf8e78730ba767a99bbec0a
     e.preventDefault();
-    console.log({ type, category, amount });
-    // TODO: call backend or API here
+
+    const parsedAmount = parseFloat(amount.replace(/,/g, ''));
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert('กรุณากรอกจำนวนเงินให้ถูกต้อง');
+      return;
+    }
+
+    const res = await fetch('/api/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: category,
+        amount: parsedAmount,
+        type: type === 'รายรับ' ? 'INCOME' : 'EXPENSE',
+        category,
+      }),
+    });
+
+    if (res.ok) {
+      alert('บันทึกเรียบร้อยแล้ว');
+      setAmount('');
+    } else {
+      const data = await res.json();
+      alert(`เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถบันทึกได้'}`);
+    }
   };
 
   return (
+<<<<<<< HEAD
     <div className="bg-[#78A3D4] min-h-screen flex justify-center items-center text-black">
       <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md">
         <MenuBar/>
@@ -30,6 +69,31 @@ export default function TransactionsPage() {
           สวัสดี {userStore.username}
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
+=======
+    <div className="bg-[#78A3D4] min-h-screen flex flex-col items-center text-black">
+      {/* Header nav */}
+      <div className="w-full max-w-md flex justify-between bg-white px-6 py-3 shadow-sm rounded-b-md">
+        <button
+          onClick={() => router.push('/category')}
+          className="text-blue-700 font-semibold hover:underline"
+        >
+          จัดหมวดหมู่
+        </button>
+        <button
+          onClick={() => router.push('/summary')}
+          className="text-blue-700 font-semibold hover:underline"
+        >
+          สรุปผล
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md mt-6">
+        <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">บันทึกรายการ</h2>
+        <p className='text-black font-xl text-center'>สวัสดี {userStore.username}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+>>>>>>> b7b3c03136bb851dedf8e78730ba767a99bbec0a
           <div>
             <label className="block text-purple-700 font-semibold mb-1">
               รายรับ/รายจ่าย
@@ -54,8 +118,8 @@ export default function TransactionsPage() {
               className="w-full border border-blue-300 rounded px-4 py-2"
             >
               <option value="อาหาร">🍞 อาหาร</option>
-              <option value="ค่าเดินทาง">🚌ค่าเดินทาง</option>
-              <option value="เสื้อผ้า">👕เสื้อผ้า</option>
+              <option value="ค่าเดินทาง">🚌 ค่าเดินทาง</option>
+              <option value="เสื้อผ้า">👕 เสื้อผ้า</option>
             </select>
           </div>
 
@@ -68,6 +132,7 @@ export default function TransactionsPage() {
               <input
                 type="number"
                 step="0.01"
+                inputMode="decimal"
                 className="w-full focus:outline-none"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
