@@ -1,6 +1,6 @@
 // prisma/schema.prisma
 datasource db {
-  provider = "postgresql" // หรือฐานข้อมูลที่คุณใช้ เช่น mysql, sqlite
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -14,28 +14,4 @@ model User {
   password  String   // รหัสผ่านจะถูกเก็บในรูปแบบที่ hash แล้ว
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // หากคุณมี Model Transaction และต้องการเชื่อมโยง
-  // transactions Transaction[]
 }
-
-// ตัวอย่าง Model Transaction (หากคุณมีอยู่แล้ว)
-// model Transaction {
-//   id          String   @id @default(cuid())
-//   type        String
-//   amount      Float
-//   categoryId  String?
-//   // category    Category? @relation(fields: [categoryId], references: [id])
-//   userId      String
-//   user        User     @relation(fields: [userId], references: [id])
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-// }
-
-// model Category {
-//   id        String   @id @default(cuid())
-//   name      String   @unique
-//   // transactions Transaction[]
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }

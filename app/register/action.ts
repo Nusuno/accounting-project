@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function RegisterUser(
   username: string,
-  password_arg: string // Renamed to avoid conflict with the 'password' variable from bcrypt
+  password_arg: string 
 ): Promise<{ success: boolean; message: string }> {
   try {
     // ตรวจสอบว่ามีชื่อผู้ใช้นี้ในระบบแล้วหรือยัง

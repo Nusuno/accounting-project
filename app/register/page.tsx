@@ -24,10 +24,15 @@ const RegisterPage: React.FC = () => {
     const result = await RegisterUser(values.username, values.password);
     if (result.success) {
       message.success(result.message);
-      // นำทางไปยังหน้า login หลังจากสมัครสมาชิกสำเร็จ
-      router.push("/");
     } else {
       message.error(result.message);
+    }
+    const isConfirmed = window.confirm(
+      "สมัครสมาชิกสำเร็จแล้ว กลับเข้าสู่หน้า เข้าสู่ระบบหรือไม่"
+    );
+    if (isConfirmed) {
+      // นำทางไปยังหน้า login หลังจากสมัครสมาชิกสำเร็จ
+      router.push("/");
     }
   };
 
@@ -87,10 +92,7 @@ const RegisterPage: React.FC = () => {
             ]}
             hasFeedback // แสดง feedback icon
           >
-            <Input.Password
-              placeholder="กรอกรหัสผ่าน"
-              className="rounded-md"
-            />
+            <Input.Password placeholder="กรอกรหัสผ่าน" className="rounded-md" />
           </Form.Item>
 
           <Form.Item<FieldType>
