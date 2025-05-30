@@ -78,7 +78,22 @@ const RegisterPage: React.FC = () => {
           <Form.Item<FieldType>
             label="ชื่อผู้ใช้"
             name="username"
-            rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
+            rules={[
+              { required: true, message: "กรุณากรอกชื่อผู้ใช้" },
+              {
+                validator(_, value) {
+                  if (!value) return Promise.resolve();
+                  const hasUppercase = /[A-Z]/.test(value);
+                  if (value.length < 6) {
+                    return Promise.reject("ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+                  }
+                  if (!hasUppercase) {
+                    return Promise.reject("ชื่อผู้ใช้ต้องมีตัวอักษรพิมพ์ใหญ่อย่างน้อย 1 ตัว");
+                  }
+                  return Promise.resolve();
+                },
+              },
+            ]}
           >
             <Input placeholder="กรอกชื่อผู้ใช้" className="rounded-md" />
           </Form.Item>
@@ -88,7 +103,27 @@ const RegisterPage: React.FC = () => {
             name="password"
             rules={[
               { required: true, message: "กรุณากรอกรหัสผ่าน" },
-              { min: 6, message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" },
+              {
+                validator(_, value) {
+                  if (!value) return Promise.resolve();
+                  const hasUppercase = /[A-Z]/.test(value);
+                  const hasLowercase = /[a-z]/.test(value);
+                  const hasNumber = /\d/.test(value);
+                  if (value.length < 8 || value.length > 16) {
+                    return Promise.reject("รหัสผ่านต้องมีความยาว 8-16 ตัวอักษร");
+                  }
+                  if (!hasUppercase) {
+                    return Promise.reject("รหัสผ่านต้องมีตัวอักษรพิมพ์ใหญ่");
+                  }
+                  if (!hasLowercase) {
+                    return Promise.reject("รหัสผ่านต้องมีตัวอักษรพิมพ์เล็ก");
+                  }
+                  if (!hasNumber) {
+                    return Promise.reject("รหัสผ่านต้องมีตัวเลข");
+                  }
+                  return Promise.resolve();
+                },
+              },
             ]}
             hasFeedback // แสดง feedback icon
           >
