@@ -9,6 +9,15 @@ type Category = {
   type: 'รายรับ' | 'รายจ่าย';
 };
 
+// หมวดหมู่เริ่มต้น
+const defaultCategories: Category[] = [
+  { id: 'default-1', name: 'เงินเดือน', type: 'รายรับ' },
+  { id: 'default-2', name: 'อาหาร', type: 'รายจ่าย' },
+  { id: 'default-3', name: 'ค่าเดินทาง', type: 'รายจ่าย' },
+  { id: 'default-4', name: 'ของใช้ส่วนตัว', type: 'รายจ่าย' },
+  { id: 'default-5', name: 'อื่นๆ', type: 'รายจ่าย' },
+];
+
 function MenuBar() {
   return (
     <nav className="bg-[#4200C5] text-white p-4 flex justify-between items-center">
@@ -20,7 +29,6 @@ function MenuBar() {
         <a href="/categories" className="hover:underline font-semibold underline">
           หมวดหมู่
         </a>
-        {/* เพิ่มลิงก์อื่น ๆ ได้ตามต้องการ */}
       </div>
     </nav>
   );
@@ -36,15 +44,24 @@ export default function CategoryPage() {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    refresh();
+    loadCategories();
   }, []);
 
-  const refresh = async () => {
+  // โหลดหมวดหมู่จาก backend หรือถ้าไม่มีให้ใช้ default
+  const loadCategories = async () => {
     const data = await getCategories();
-    setCategories(data);
+    if (!data || data.length === 0) {
+      // ยังไม่มีหมวดหมู่ในระบบ ให้ตั้งเป็น defaultCategories
+      setCategories(defaultCategories);
+      // บันทึก defaultCategories ไปยัง backend ผ่าน addCategory (ถ้าต้องการ)
+      // หรือบันทึก localStorage หรืออื่นๆ ตามระบบคุณ
+      // สมมติเราไม่บันทึกอัตโนมัติ เพื่อไม่ให้เพิ่มซ้ำ
+    } else {
+      setCategories(data);
+    }
 
-    // เก็บ categories ลง localStorage ทุกครั้งที่ refresh
-    localStorage.setItem('categories', JSON.stringify(data));
+    // เก็บลง localStorage ด้วย (ถ้าต้องการ)
+    // localStorage.setItem('categories', JSON.stringify(data.length > 0 ? data : defaultCategories));
   };
 
   const handleAdd = () => {
@@ -54,9 +71,7 @@ export default function CategoryPage() {
       addCategory(newCategoryName.trim(), type).then(() => {
         setNewCategoryName('');
         setAdding(false);
-        refresh();
-
-        // แจ้ง event อัพเดตหมวดหมู่
+        loadCategories();
         window.dispatchEvent(new Event('categoriesUpdated'));
       });
     });
@@ -66,7 +81,7 @@ export default function CategoryPage() {
     if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่นี้?')) return;
     startTransition(() => {
       deleteCategory(id).then(() => {
-        refresh();
+        loadCategories();
         window.dispatchEvent(new Event('categoriesUpdated'));
       });
     });
@@ -79,7 +94,7 @@ export default function CategoryPage() {
       updateCategory(id, editingName.trim()).then(() => {
         setEditingId(null);
         setEditingName('');
-        refresh();
+        loadCategories();
         window.dispatchEvent(new Event('categoriesUpdated'));
       });
     });
@@ -115,7 +130,7 @@ export default function CategoryPage() {
                             <button
                               onClick={() => handleUpdate(cat.id)}
                               disabled={isPending}
-                              className="text-sm text-white bg-[#4200C5] px-3 py-1 rounded hover:bg-[#2C007A] transition"
+                              className="text-sm text-white bg-[#222CF3] px-3 py-1 rounded border border-[#78A3D4] hover:bg-[#1B23B0] transition"
                             >
                               บันทึก
                             </button>
@@ -129,7 +144,7 @@ export default function CategoryPage() {
                                   setEditingId(cat.id);
                                   setEditingName(cat.name);
                                 }}
-                                className="text-sm text-white bg-[#4200C5] px-3 py-1 rounded hover:bg-[#2C007A] transition"
+                                className="text-sm text-white bg-[#222CF3] px-3 py-1 rounded border border-[#78A3D4] hover:bg-[#1B23B0] transition"
                               >
                                 แก้ไข
                               </button>
@@ -153,7 +168,7 @@ export default function CategoryPage() {
             {!adding ? (
               <button
                 onClick={() => setAdding(true)}
-                className="flex items-center justify-center gap-2 w-full border border-[#4200C5] rounded px-4 py-2 text-[#4200C5] font-semibold hover:bg-[#4200C5] hover:text-white transition"
+                className="flex items-center justify-center gap-2 w-full border border-[#78A3D4] rounded px-4 py-2 text-[#4200C5] font-semibold hover:bg-[#222CF3] hover:text-white transition"
               >
                 <span className="text-2xl">+</span> เพิ่มหมวดหมู่
               </button>
@@ -165,7 +180,7 @@ export default function CategoryPage() {
                     const val = e.target.value;
                     if (val === 'รายรับ' || val === 'รายจ่าย') setType(val);
                   }}
-                  className="border border-[#78A3D4] rounded px-3 py-2"
+                  className="border border-[#78A3D4] rounded px-3 py-2 text-[#4200C5]"
                 >
                   <option value="รายรับ">รายรับ</option>
                   <option value="รายจ่าย">รายจ่าย</option>
@@ -176,7 +191,7 @@ export default function CategoryPage() {
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="ชื่อหมวดหมู่ใหม่"
-                  className="flex-1 border border-[#78A3D4] rounded px-3 py-2"
+                  className="flex-1 border border-[#78A3D4] rounded px-3 py-2 text-[#4200C5]"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleAdd();
                     else if (e.key === 'Escape') {
@@ -190,7 +205,7 @@ export default function CategoryPage() {
                 <button
                   onClick={handleAdd}
                   disabled={isPending}
-                  className="bg-[#4200C5] text-white px-4 py-2 rounded border border-[#78A3D4] hover:bg-[#2C007A] transition"
+                  className="bg-[#222CF3] text-white px-4 py-2 rounded border border-[#78A3D4] hover:bg-[#1B23B0] transition"
                 >
                   เพิ่ม
                 </button>
