@@ -61,7 +61,7 @@ export default function TransactionsPage() {
       localStorage.setItem('categories', JSON.stringify(initialCategories));
     }
     loadCategories(type);
-  }, []);
+  },);
 
   // โหลดหมวดหมู่เมื่อเปลี่ยนประเภท
   useEffect(() => {
