@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Input, Modal, Select, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 
@@ -12,6 +13,8 @@ interface Category {
 }
 
 export default function CategoryManagementPage() {
+  const router = useRouter();
+
   const [categories, setCategories] = useState<Category[]>([
     { id: 1, type: 'รายรับ', icon: '💰', name: 'เงินเดือน' },
     { id: 2, type: 'รายจ่าย', icon: '🍞', name: 'อาหาร' },
@@ -20,7 +23,6 @@ export default function CategoryManagementPage() {
     { id: 5, type: 'รายจ่าย', icon: '📦', name: 'อื่นๆ' },
   ]);
 
-  // ระบุ type ให้ newCategory เพื่อ TypeScript
   const [newCategory, setNewCategory] = useState<Omit<Category, 'id'>>({
     name: '',
     icon: '',
@@ -76,8 +78,24 @@ export default function CategoryManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-blue-200 py-10 px-4">
-      <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
+    <div className="min-h-screen bg-blue-200 py-10 px-4 flex flex-col items-center">
+      {/* ปุ่มนำทางด้านบน */}
+      <div className="w-full max-w-xl flex justify-between bg-white px-6 py-3 shadow-sm rounded-b-md mb-4">
+        <button
+          onClick={() => router.push('/transactions')}
+          className="text-blue-700 font-semibold hover:underline"
+        >
+          บันทึกรายการ
+        </button>
+        <button
+          onClick={() => router.push('/summary')}
+          className="text-blue-700 font-semibold hover:underline"
+        >
+          สรุปผล
+        </button>
+      </div>
+
+      <div className="max-w-xl w-full bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">จัดหมวดหมู่</h2>
         <div className="flex justify-between text-lg font-semibold mb-4 px-2">
           <span className="text-green-600">รายรับ</span>
