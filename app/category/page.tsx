@@ -31,6 +31,14 @@ export default function CategoryManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
+  // สำหรับ Modal ใส่จำนวนเงินในกรอบเลือกเงิน
+  const [moneyModalOpen, setMoneyModalOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState<'รายรับ' | 'รายจ่าย' | null>(null);
+  const [moneyAmount, setMoneyAmount] = useState('');
+
+  // ตัวอย่างเก็บจำนวนเงินดึงไปใส่ในหมวดหมู่ (แค่เก็บแบบนี้ไว้ดูผล)
+  const [moneyAllocated, setMoneyAllocated] = useState<{ type: 'รายรับ' | 'รายจ่าย'; amount: number }[]>([]);
+
   const showModal = () => setIsModalOpen(true);
 
   const handleCancel = () => {
@@ -77,6 +85,27 @@ export default function CategoryManagementPage() {
     setIsModalOpen(true);
   };
 
+  // ฟังก์ชันเปิด modal ใส่เงิน และเซ็ตประเภทรายรับหรือรายจ่าย
+  const openMoneyModal = (type: 'รายรับ' | 'รายจ่าย') => {
+    setSelectedType(type);
+    setMoneyAmount('');
+    setMoneyModalOpen(true);
+  };
+
+  // ฟังก์ชันบันทึกเงินที่ใส่
+  const saveMoneyAmount = () => {
+    const parsed = parseFloat(moneyAmount);
+    if (isNaN(parsed) || parsed <= 0) {
+      message.error('กรุณากรอกจำนวนเงินที่ถูกต้อง');
+      return;
+    }
+    if (selectedType) {
+      setMoneyAllocated((prev) => [...prev, { type: selectedType, amount: parsed }]);
+      message.success(`เพิ่มจำนวนเงิน ${parsed} บาท ให้กับหมวดหมู่ ${selectedType} เรียบร้อย`);
+    }
+    setMoneyModalOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-blue-200 py-10 px-4 flex flex-col items-center">
       {/* ปุ่มนำทางด้านบน */}
@@ -97,6 +126,24 @@ export default function CategoryManagementPage() {
 
       <div className="max-w-xl w-full bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">จัดหมวดหมู่</h2>
+
+        {/* กรอบเลือกจำนวนเงิน */}
+        <div className="flex justify-center gap-6 mb-6">
+          <div
+            onClick={() => openMoneyModal('รายรับ')}
+            className="cursor-pointer border-2 border-green-600 rounded-md px-8 py-6 flex flex-col items-center justify-center text-green-700 font-semibold hover:bg-green-100 transition"
+          >
+            รายรับ
+          </div>
+          <div
+            onClick={() => openMoneyModal('รายจ่าย')}
+            className="cursor-pointer border-2 border-red-600 rounded-md px-8 py-6 flex flex-col items-center justify-center text-red-700 font-semibold hover:bg-red-100 transition"
+          >
+            รายจ่าย
+          </div>
+        </div>
+
+        {/* รายการหมวดหมู่ */}
         <div className="flex justify-between text-lg font-semibold mb-4 px-2">
           <span className="text-green-600">รายรับ</span>
           <span className="text-red-500 underline">รายจ่าย</span>
@@ -121,6 +168,27 @@ export default function CategoryManagementPage() {
         </Button>
       </div>
 
+      {/* Modal ใส่จำนวนเงิน */}
+      <Modal
+        title={`เพิ่มจำนวนเงินให้กับหมวดหมู่ ${selectedType}`}
+        open={moneyModalOpen}
+        onCancel={() => setMoneyModalOpen(false)}
+        onOk={saveMoneyAmount}
+        okText="บันทึก"
+        cancelText="ยกเลิก"
+      >
+        <Input
+          placeholder="กรอกจำนวนเงิน"
+          value={moneyAmount}
+          onChange={(e) => setMoneyAmount(e.target.value)}
+          type="number"
+          min={0}
+          step="0.01"
+          autoFocus
+        />
+      </Modal>
+
+      {/* Modal เพิ่ม / แก้ไขหมวดหมู่ */}
       <Modal
         title={editId !== null ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่'}
         open={isModalOpen}
