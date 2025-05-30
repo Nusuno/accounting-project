@@ -3,10 +3,9 @@ import React from "react";
 import { Button, Form, Input, message } from "antd";
 import type { FormProps } from "antd";
 import { Login } from "./action";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // ✅ เพิ่ม useRouter สำหรับ redirect
-import {useUserStore} from "@/store/user"
+import { useUserStore } from "@/store/user";
 
 type FieldType = {
   username: string;
@@ -15,21 +14,19 @@ type FieldType = {
 };
 
 const LoginPage: React.FC = () => {
-  const router = useRouter(); // ✅ ใช้สำหรับเปลี่ยนหน้า
-
-  const [form] = Form.useForm(); // ✅ สำหรับ reset form
+  const router = useRouter();
+  const [form] = Form.useForm();
   const userStore = useUserStore();
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     const isLogin = await Login(values.username, values.password);
     if (isLogin !== false) {
       alert("เข้าสู่ระบบแล้ว");
-      userStore.setUser(isLogin.id, isLogin.username)
-      
-      router.push("/transactions"); // ✅ ย้ายไปหน้า transactions
+      userStore.setUser(isLogin.id, isLogin.username);
+      router.push("/transactions");
     } else {
       alert("username หรือ password ไม่ถูกต้อง");
-      form.resetFields(); // ✅ ล้างช่องกรอก username และ password
+      form.resetFields();
     }
   };
 
@@ -38,31 +35,12 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#f0f4ff] via-[#eafbf6] to-[#fefefe] px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white/80 backdrop-blur-lg border border-gray-100 shadow-xl rounded-3xl w-full max-w-sm p-8"
-      >
-        {/* โลโก้ */}
-        <div className="flex justify-center mb-4">
-          <motion.img
-            src="https://www.yuvabadhanafoundation.org/wp-content/uploads/2021/09/%E0%B8%AD%E0%B8%AD%E0%B8%A1%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99-01-01.png"
-            alt="Logo"
-            className="w-16 h-16"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">
-          เข้าสู่ระบบ
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-[#78A3D4] px-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <h2 className="text-center text-2xl font-semibold text-[#4200C5] mb-6">เข้าสู่ระบบ</h2>
 
         <Form
-          form={form} // ✅ เชื่อมกับ form instance
+          form={form}
           name="login"
           layout="vertical"
           initialValues={{ remember: true }}
@@ -71,21 +49,22 @@ const LoginPage: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item<FieldType>
-            label="ชื่อผู้ใช้"
             name="username"
             rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
           >
-            <Input placeholder="กรอกชื่อผู้ใช้" className="rounded-md" />
+            <Input
+              placeholder="Username"
+              className="w-full px-4 py-2 border border-[#78A3D4] rounded-md text-[#4200C5] placeholder-[#4200C5] focus:outline-none"
+            />
           </Form.Item>
 
           <Form.Item<FieldType>
-            label="รหัสผ่าน"
             name="password"
             rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
           >
             <Input.Password
-              placeholder="กรอกรหัสผ่าน"
-              className="rounded-md"
+              placeholder="รหัสผ่าน"
+              className="w-full px-4 py-2 border border-[#78A3D4] rounded-md text-[#4200C5] placeholder-[#4200C5] focus:outline-none"
             />
           </Form.Item>
 
@@ -94,17 +73,17 @@ const LoginPage: React.FC = () => {
               type="primary"
               htmlType="submit"
               block
-              className="rounded-lg bg-gradient-to-r from-lime-400 to-emerald-400 hover:from-lime-500 hover:to-emerald-500 text-white font-medium transition-all duration-300"
+              className="bg-[#222CF3] border border-[#78A3D4] text-white py-2 rounded-md hover:bg-[#5930d9] transition"
             >
-              เข้าสู่ระบบ
+              ล็อกอิน
             </Button>
           </Form.Item>
         </Form>
 
-        <div className="text-center text-black">
+        <div className="text-center text-[#4200C5] space-x-2">
           <Link href="/register">สมัครสมาชิก</Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

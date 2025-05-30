@@ -2,10 +2,9 @@
 import React from "react";
 import { Button, Form, Input, message } from "antd";
 import type { FormProps } from "antd";
-import { RegisterUser } from "./action"; // ฟังก์ชันที่เราสร้างไว้
-import { motion } from "framer-motion";
-import Link from "next/link";
+import { RegisterUser } from "./action";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type FieldType = {
   username: string;
@@ -33,38 +32,18 @@ const RegisterPage: React.FC = () => {
         router.push("/");
       }
     } else {
-      window.alert(result.message); // ใช้ alert แจ้งเตือนถ้าชื่อซ้ำหรือ error อื่น
+      window.alert(result.message);
     }
   };
 
-  const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
-    errorInfo
-  ) => {
-    console.log("Failed:", errorInfo);
-    window.alert("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง");
+  const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = () => {
+    message.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง");
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#f0f4ff] via-[#eafbf6] to-[#fefefe] px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white/80 backdrop-blur-lg border border-gray-100 shadow-xl rounded-3xl w-full max-w-sm p-8"
-      >
-        {/* โลโก้ */}
-        <div className="flex justify-center mb-4">
-          <motion.img
-            src="c:\Users\DMC-14\Desktop\mbeawww.jpg"
-            alt="Logo"
-            className="w-16 h-16"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">
+    <div className="min-h-screen flex items-center justify-center bg-[#78A3D4] px-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <h2 className="text-center text-2xl font-semibold text-[#4200C5] mb-6">
           สมัครสมาชิก
         </h2>
 
@@ -77,27 +56,41 @@ const RegisterPage: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item<FieldType>
-            label="ชื่อผู้ใช้"
             name="username"
-            rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
+            rules={[
+              { required: true, message: "กรุณากรอกชื่อผู้ใช้" },
+              {
+                pattern: /^(?=.*[A-Z]).{6,}$/,
+                message:
+                  "ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 6 ตัว และมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว",
+              },
+            ]}
           >
-            <Input placeholder="กรอกชื่อผู้ใช้" className="rounded-md" />
+            <Input
+              placeholder="Username"
+              className="w-full px-4 py-2 border border-[#78A3D4] rounded-md text-[#4200C5] placeholder-[#4200C5] focus:outline-none"
+            />
           </Form.Item>
 
           <Form.Item<FieldType>
-            label="รหัสผ่าน"
             name="password"
             rules={[
               { required: true, message: "กรุณากรอกรหัสผ่าน" },
-              { min: 6, message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" },
+              {
+                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,16}$/,
+                message:
+                  "รหัสผ่านต้องมีความยาว 8-16 ตัว และรวมตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข",
+              },
             ]}
             hasFeedback
           >
-            <Input.Password placeholder="กรอกรหัสผ่าน" className="rounded-md" />
+            <Input.Password
+              placeholder="รหัสผ่าน"
+              className="w-full px-4 py-2 border border-[#78A3D4] rounded-md text-[#4200C5] placeholder-[#4200C5] focus:outline-none"
+            />
           </Form.Item>
 
           <Form.Item<FieldType>
-            label="ยืนยันรหัสผ่าน"
             name="confirmPassword"
             dependencies={["password"]}
             hasFeedback
@@ -117,7 +110,7 @@ const RegisterPage: React.FC = () => {
           >
             <Input.Password
               placeholder="ยืนยันรหัสผ่าน"
-              className="rounded-md"
+              className="w-full px-4 py-2 border border-[#78A3D4] rounded-md text-[#4200C5] placeholder-[#4200C5] focus:outline-none"
             />
           </Form.Item>
 
@@ -126,17 +119,17 @@ const RegisterPage: React.FC = () => {
               type="primary"
               htmlType="submit"
               block
-              className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all duration-300"
+              className="bg-[#222CF3] border border-[#78A3D4] text-white py-2 rounded-md hover:bg-[#5930d9] transition"
             >
               สมัครสมาชิก
             </Button>
           </Form.Item>
         </Form>
 
-        <div className="text-center text-black mt-4">
-          มีบัญชีอยู่แล้ว? <Link href="/">เข้าสู่ระบบที่นี่</Link>
+        <div className="text-center text-[#4200C5] space-x-2">
+          <Link href="/">เข้าสู่ระบบ</Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
