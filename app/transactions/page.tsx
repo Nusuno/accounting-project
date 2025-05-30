@@ -1,39 +1,87 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { saveTransaction } from './action';
-import { useRouter } from 'next/navigation';
-import { useUserStore } from '@/store/user';
+
+function MenuBar() {
+  return (
+    <nav className="bg-[#4200C5] text-white p-4 flex justify-between items-center">
+      <div className="font-bold text-lg">ระบบจัดการการเงิน</div>
+      <div className="space-x-6">
+        <a href="/transactions" className="hover:underline">
+          บันทึกรายรับ/รายจ่าย
+        </a>
+        <a href="/categories" className="hover:underline">
+          หมวดหมู่
+        </a>
+        {/* เพิ่มลิงก์เมนูอื่น ๆ ได้ที่นี่ */}
+      </div>
+    </nav>
+  );
+}
 
 export default function TransactionsPage() {
-  const [type, setType] = useState('รายจ่าย');
+  const [type, setType] = useState<'รายรับ' | 'รายจ่าย'>('รายรับ');
+  const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [totalExpense, setTotalExpense] = useState(0);
+  const [categories, setCategories] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
-  const userStore = useUserStore();
+
+  function loadCategories(currentType: 'รายรับ' | 'รายจ่าย') {
+    const stored = localStorage.getItem('categories');
+    if (stored) {
+      try {
+        const allCategories = JSON.parse(stored) as { id: string; name: string; type: string }[];
+        const filtered = allCategories.filter((c) => c.type === currentType).map((c) => c.name);
+        setCategories(filtered);
+        if (filtered.length > 0) {
+          setCategory(filtered[0]);
+        } else {
+          setCategory('');
+        }
+      } catch {
+        setCategories([]);
+        setCategory('');
+      }
+    } else {
+      setCategories([]);
+      setCategory('');
+    }
+  }
+
+  useEffect(() => {
+    loadCategories(type);
+  }, [type]);
+
+  useEffect(() => {
+    function onCategoriesUpdated() {
+      loadCategories(type);
+    }
+    window.addEventListener('categoriesUpdated', onCategoriesUpdated);
+    return () => window.removeEventListener('categoriesUpdated', onCategoriesUpdated);
+  }, [type]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('type', type);
-    formData.append('amount', amount);
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('กรุณากรอกจำนวนเงินให้ถูกต้อง');
       return;
     }
+    if (!category) {
+      alert('กรุณาเลือกหมวดหมู่');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('type', type);
+    formData.append('amount', amount);
+    formData.append('category', category);
 
     startTransition(() => {
-      saveTransaction(formData, userStore.id)
+      saveTransaction(formData)
         .then(() => {
-          if (type === 'รายรับ') {
-            setTotalIncome((prev) => prev + parsedAmount);
-          } else {
-            setTotalExpense((prev) => prev + parsedAmount);
-          }
           setAmount('');
           alert('✅ บันทึกสำเร็จ');
         })
@@ -42,67 +90,77 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="bg-[#78A3D4] min-h-screen flex flex-col items-center text-black">
-      {/* ... Header omitted ... */}
-      <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md mt-6">
-        <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">บันทึกรายการ</h2>
-        <p className='text-black font-xl text-center'>สวัสดี {userStore.username}</p>
+    <div className="bg-[#78A3D4] min-h-screen flex flex-col text-[#4200C5]">
+      <MenuBar />
+      <main className="flex-grow flex flex-col items-center">
+        <div className="bg-[#FFFFFF] p-8 rounded-md shadow-md w-full max-w-md mt-10 mb-6">
+          <h2 className="text-2xl font-bold text-center mb-6 text-[#4200C5]">
+            หน้าบันทึกรายรับ/รายจ่าย
+          </h2>
 
-        <div className="flex justify-center gap-6 mb-6">
-          <div className="border-2 border-green-600 rounded-md px-8 py-6 text-center text-green-700 font-semibold">
-            <span>รายรับ</span>
-            <div className="text-2xl">
-              {totalIncome.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block font-semibold mb-1 text-[#4200C5]">เลือกประเภท</label>
+              <select
+                value={type}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'รายรับ' || val === 'รายจ่าย') setType(val);
+                }}
+                className="w-full border border-[#78A3D4] rounded px-4 py-2 text-[#4200C5]"
+              >
+                {['รายรับ', 'รายจ่าย'].map((t) => (
+                  <option key={t} className="text-[#4200C5]">
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
-          <div className="border-2 border-red-600 rounded-md px-8 py-6 text-center text-red-700 font-semibold">
-            <span>รายจ่าย</span>
-            <div className="text-2xl">
-              {totalExpense.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}
+
+            <div>
+              <label className="block font-semibold mb-1 text-[#4200C5]">หมวดหมู่</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full border border-[#78A3D4] rounded px-4 py-2 text-[#4200C5]"
+                disabled={categories.length === 0}
+              >
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">-- ไม่มีหมวดหมู่ --</option>
+                )}
+              </select>
             </div>
-          </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-purple-700 font-semibold mb-1">รายรับ/รายจ่าย</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full border border-blue-300 rounded px-4 py-2"
-              name="type"
-            >
-              <option>รายรับ</option>
-              <option>รายจ่าย</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-purple-700 font-semibold mb-1">จำนวนเงิน</label>
-            <div className="flex items-center border border-blue-300 rounded px-2 py-2">
-              <span className="mr-2 text-xl">฿</span>
+            <div>
+              <label className="block font-semibold mb-1 text-[#4200C5]">จำนวนเงิน</label>
               <input
                 type="number"
+                min="0"
                 step="0.01"
-                className="w-full focus:outline-none"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="ใส่จำนวนเงิน"
+                placeholder="กรอกจำนวนเงิน"
+                className="w-full border border-[#78A3D4] rounded px-4 py-2 text-[#4200C5]"
                 required
-                name="amount"
               />
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded mt-4"
-          >
-            {isPending ? 'กำลังบันทึก...' : 'บันทึก'}
-          </button>
-        </form>
-      </div>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-[#4200C5] text-white rounded px-4 py-2 font-semibold hover:bg-[#2C007A] transition"
+            >
+              บันทึก
+            </button>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
