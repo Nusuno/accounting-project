@@ -13,12 +13,19 @@ export default function TransactionsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const parsedAmount = parseFloat(amount.replace(/,/g, ''));
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert('กรุณากรอกจำนวนเงินให้ถูกต้อง');
+      return;
+    }
+
     const res = await fetch('/api/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: category,
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         type: type === 'รายรับ' ? 'INCOME' : 'EXPENSE',
         category,
       }),
@@ -28,7 +35,8 @@ export default function TransactionsPage() {
       alert('บันทึกเรียบร้อยแล้ว');
       setAmount('');
     } else {
-      alert('เกิดข้อผิดพลาด');
+      const data = await res.json();
+      alert(`เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถบันทึกได้'}`);
     }
   };
 
@@ -88,6 +96,7 @@ export default function TransactionsPage() {
               <input
                 type="number"
                 step="0.01"
+                inputMode="decimal"
                 className="w-full focus:outline-none"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
