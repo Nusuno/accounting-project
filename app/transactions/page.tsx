@@ -21,11 +21,7 @@ export default function TransactionsPage() {
   return (
     <div className="bg-[#78A3D4] min-h-screen flex justify-center items-center text-black">
       <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md">
-        <MenuBar
-          onSave={() => alert("บันทึกรายการ")}
-          onCategorize={() => alert("จัดหมวดหมู่")}
-          onSummary={() => alert("สรุปผล")}
-        />
+        <MenuBar/>
         <br />
         <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">
           บันทึกรายการ
