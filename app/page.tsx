@@ -5,6 +5,7 @@ import type { FormProps } from "antd";
 import { Login } from "./action";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ✅ เพิ่ม useRouter สำหรับ redirect
 
 type FieldType = {
   username: string;
@@ -12,20 +13,26 @@ type FieldType = {
   remember?: boolean;
 };
 
-const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-  const isLogin = await Login(values.username, values.password);
-  if (isLogin) {
-    alert("เข้าสู่ระบบแล้ว");
-  } else {
-    alert("username หรือ password ไม่ถูกต้อง");
-  }
-};
-
-const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = () => {
-  message.error("กรุณากรอกข้อมูลให้ครบถ้วน");
-};
-
 const LoginPage: React.FC = () => {
+  const router = useRouter(); // ✅ ใช้สำหรับเปลี่ยนหน้า
+
+  const [form] = Form.useForm(); // ✅ สำหรับ reset form
+
+  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+    const isLogin = await Login(values.username, values.password);
+    if (isLogin) {
+      alert("เข้าสู่ระบบแล้ว");
+      router.push("/transactions"); // ✅ ย้ายไปหน้า transactions
+    } else {
+      alert("username หรือ password ไม่ถูกต้อง");
+      form.resetFields(); // ✅ ล้างช่องกรอก username และ password
+    }
+  };
+
+  const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = () => {
+    message.error("กรุณากรอกข้อมูลให้ครบถ้วน");
+  };
+
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#f0f4ff] via-[#eafbf6] to-[#fefefe] px-4">
       <motion.div
@@ -51,6 +58,7 @@ const LoginPage: React.FC = () => {
         </h2>
 
         <Form
+          form={form} // ✅ เชื่อมกับ form instance
           name="login"
           layout="vertical"
           initialValues={{ remember: true }}
@@ -71,7 +79,10 @@ const LoginPage: React.FC = () => {
             name="password"
             rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
           >
-            <Input.Password placeholder="กรอกรหัสผ่าน" className="rounded-md" />
+            <Input.Password
+              placeholder="กรอกรหัสผ่าน"
+              className="rounded-md"
+            />
           </Form.Item>
 
           <Form.Item>
@@ -85,6 +96,7 @@ const LoginPage: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
+
         <div className="text-center text-black">
           <Link href="/register">สมัครสมาชิก</Link>
         </div>
