@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 
 export async function RegisterUser(
   username: string,
-  password_arg: string 
+  password_arg: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // ตรวจสอบว่ามีชื่อผู้ใช้นี้ในระบบแล้วหรือยัง
+    // ตรวจสอบว่าชื่อผู้ใช้นี้มีอยู่ในระบบแล้วหรือยัง
     const existingUser = await prisma.user.findUnique({
       where: { username },
     });
@@ -20,7 +20,7 @@ export async function RegisterUser(
     }
 
     // Hash รหัสผ่าน
-    const hashedPassword = await bcrypt.hash(password_arg, 10); // Use password_arg
+    const hashedPassword = await bcrypt.hash(password_arg, 10);
 
     // สร้างผู้ใช้ใหม่
     await prisma.user.create({
