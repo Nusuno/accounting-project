@@ -6,6 +6,7 @@ import { Login } from "./action";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ เพิ่ม useRouter สำหรับ redirect
+import {useUserStore} from "@/store/user"
 
 type FieldType = {
   username: string;
@@ -17,11 +18,14 @@ const LoginPage: React.FC = () => {
   const router = useRouter(); // ✅ ใช้สำหรับเปลี่ยนหน้า
 
   const [form] = Form.useForm(); // ✅ สำหรับ reset form
+  const userStore = useUserStore();
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     const isLogin = await Login(values.username, values.password);
-    if (isLogin) {
+    if (isLogin !== false) {
       alert("เข้าสู่ระบบแล้ว");
+      userStore.setUser(isLogin.id, isLogin.username)
+      
       router.push("/transactions"); // ✅ ย้ายไปหน้า transactions
     } else {
       alert("username หรือ password ไม่ถูกต้อง");

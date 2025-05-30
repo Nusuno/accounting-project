@@ -9,9 +9,21 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique // ชื่อผู้ใช้ต้องไม่ซ้ำกัน
-  password  String   // รหัสผ่านจะถูกเก็บในรูปแบบที่ hash แล้ว
+  id          String       @id @default(cuid())
+  username    String        @unique // ชื่อผู้ใช้ต้องไม่ซ้ำกัน
+  password    String // รหัสผ่านจะถูกเก็บในรูปแบบที่ hash แล้ว
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Transaction Transaction[]
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  type      String   @default("รายจ่าย")
+  category  String   @default("อาหาร")
+  amount    Float    @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

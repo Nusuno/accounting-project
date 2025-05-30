@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import {useUserStore} from "@/store/user"
 
 export default function TransactionsPage() {
   const [type, setType] = useState('รายจ่าย');
   const [category, setCategory] = useState('🍞');
   const [amount, setAmount] = useState('');
+
+  const userStore = useUserStore()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,10 +17,10 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="bg-[#78A3D4] min-h-screen flex justify-center items-center">
+    <div className="bg-[#78A3D4] min-h-screen flex justify-center items-center text-black">
       <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">บันทึกรายการ</h2>
-
+        <p className='text-black font-xl text-center'>สวัสดี {userStore.username}</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-purple-700 font-semibold mb-1">รายรับ/รายจ่าย</label>
@@ -38,9 +41,9 @@ export default function TransactionsPage() {
               onChange={(e) => setCategory(e.target.value)}
               className="w-full border border-blue-300 rounded px-4 py-2"
             >
-              <option value="🍞">อาหาร</option>
-              <option value="🚌">ค่าเดินทาง</option>
-              <option value="👕">เสื้อผ้า</option>
+              <option value="อาหาร">🍞 อาหาร</option>
+              <option value="ค่าเดินทาง">🚌ค่าเดินทาง</option>
+              <option value="เสื้อผ้า">👕เสื้อผ้า</option>
             </select>
           </div>
 
