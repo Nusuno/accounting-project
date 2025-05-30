@@ -2,37 +2,38 @@
 import React from "react";
 import { Button, Form, Input, message } from "antd";
 import type { FormProps } from "antd";
-import { RegisterUser } from "./action"; // Import a new action for registration
+import { RegisterUser } from "./action"; // ฟังก์ชันที่เราสร้างไว้
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 type FieldType = {
   username: string;
   password: string;
-  confirmPassword?: string; // Added for password confirmation
+  confirmPassword?: string;
 };
 
 const RegisterPage: React.FC = () => {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     if (values.password !== values.confirmPassword) {
-      message.error("รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน");
+      window.alert("รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน");
       return;
     }
+
     const result = await RegisterUser(values.username, values.password);
+
     if (result.success) {
       message.success(result.message);
+      const isConfirmed = window.confirm(
+        "สมัครสมาชิกสำเร็จแล้ว กลับเข้าสู่หน้า เข้าสู่ระบบหรือไม่"
+      );
+      if (isConfirmed) {
+        router.push("/");
+      }
     } else {
-      message.error(result.message);
-    }
-    const isConfirmed = window.confirm(
-      "สมัครสมาชิกสำเร็จแล้ว กลับเข้าสู่หน้า เข้าสู่ระบบหรือไม่"
-    );
-    if (isConfirmed) {
-      // นำทางไปยังหน้า login หลังจากสมัครสมาชิกสำเร็จ
-      router.push("/");
+      window.alert(result.message); // ใช้ alert แจ้งเตือนถ้าชื่อซ้ำหรือ error อื่น
     }
   };
 
@@ -40,7 +41,7 @@ const RegisterPage: React.FC = () => {
     errorInfo
   ) => {
     console.log("Failed:", errorInfo);
-    message.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง");
+    window.alert("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง");
   };
 
   return (
@@ -54,7 +55,7 @@ const RegisterPage: React.FC = () => {
         {/* โลโก้ */}
         <div className="flex justify-center mb-4">
           <motion.img
-            src="https://www.yuvabadhanafoundation.org/wp-content/uploads/2021/09/%E0%B8%AD%E0%B8%AD%E0%B8%A1%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99-01-01.png" // คุณอาจต้องการโลโก้ที่แตกต่างกันสำหรับหน้าสมัครสมาชิก
+            src="https://www.yuvabadhanafoundation.org/wp-content/uploads/2021/09/%E0%B8%AD%E0%B8%AD%E0%B8%A1%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99-01-01.png"
             alt="Logo"
             className="w-16 h-16"
             initial={{ scale: 0.8, opacity: 0 }}
@@ -70,7 +71,7 @@ const RegisterPage: React.FC = () => {
         <Form
           name="register"
           layout="vertical"
-          initialValues={{ remember: true }} // อาจจะไม่จำเป็นสำหรับหน้าสมัครสมาชิก
+          initialValues={{ remember: true }}
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}
           autoComplete="off"
@@ -78,22 +79,7 @@ const RegisterPage: React.FC = () => {
           <Form.Item<FieldType>
             label="ชื่อผู้ใช้"
             name="username"
-            rules={[
-              { required: true, message: "กรุณากรอกชื่อผู้ใช้" },
-              {
-                validator(_, value) {
-                  if (!value) return Promise.resolve();
-                  const hasUppercase = /[A-Z]/.test(value);
-                  if (value.length < 6) {
-                    return Promise.reject("ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
-                  }
-                  if (!hasUppercase) {
-                    return Promise.reject("ชื่อผู้ใช้ต้องมีตัวอักษรพิมพ์ใหญ่อย่างน้อย 1 ตัว");
-                  }
-                  return Promise.resolve();
-                },
-              },
-            ]}
+            rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
           >
             <Input placeholder="กรอกชื่อผู้ใช้" className="rounded-md" />
           </Form.Item>
@@ -103,29 +89,9 @@ const RegisterPage: React.FC = () => {
             name="password"
             rules={[
               { required: true, message: "กรุณากรอกรหัสผ่าน" },
-              {
-                validator(_, value) {
-                  if (!value) return Promise.resolve();
-                  const hasUppercase = /[A-Z]/.test(value);
-                  const hasLowercase = /[a-z]/.test(value);
-                  const hasNumber = /\d/.test(value);
-                  if (value.length < 8 || value.length > 16) {
-                    return Promise.reject("รหัสผ่านต้องมีความยาว 8-16 ตัวอักษร");
-                  }
-                  if (!hasUppercase) {
-                    return Promise.reject("รหัสผ่านต้องมีตัวอักษรพิมพ์ใหญ่");
-                  }
-                  if (!hasLowercase) {
-                    return Promise.reject("รหัสผ่านต้องมีตัวอักษรพิมพ์เล็ก");
-                  }
-                  if (!hasNumber) {
-                    return Promise.reject("รหัสผ่านต้องมีตัวเลข");
-                  }
-                  return Promise.resolve();
-                },
-              },
+              { min: 6, message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" },
             ]}
-            hasFeedback // แสดง feedback icon
+            hasFeedback
           >
             <Input.Password placeholder="กรอกรหัสผ่าน" className="rounded-md" />
           </Form.Item>
@@ -133,7 +99,7 @@ const RegisterPage: React.FC = () => {
           <Form.Item<FieldType>
             label="ยืนยันรหัสผ่าน"
             name="confirmPassword"
-            dependencies={["password"]} // ทำให้ field นี้ re-validate เมื่อ password เปลี่ยน
+            dependencies={["password"]}
             hasFeedback
             rules={[
               { required: true, message: "กรุณายืนยันรหัสผ่าน" },
@@ -160,12 +126,13 @@ const RegisterPage: React.FC = () => {
               type="primary"
               htmlType="submit"
               block
-              className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all duration-300" // เปลี่ยนสีปุ่มเล็กน้อย
+              className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all duration-300"
             >
               สมัครสมาชิก
             </Button>
           </Form.Item>
         </Form>
+
         <div className="text-center text-black mt-4">
           มีบัญชีอยู่แล้ว? <Link href="/">เข้าสู่ระบบที่นี่</Link>
         </div>
