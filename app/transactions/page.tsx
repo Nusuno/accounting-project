@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import {useUserStore} from "@/store/user"
+import { useState } from "react";
+import { useUserStore } from "@/store/user";
+import MenuBar from "@/components/MenuBar";
+// import router from "next/router";
 
 export default function TransactionsPage() {
-  const [type, setType] = useState('รายจ่าย');
-  const [category, setCategory] = useState('🍞');
-  const [amount, setAmount] = useState('');
+  const [type, setType] = useState("รายจ่าย");
+  const [category, setCategory] = useState("🍞");
+  const [amount, setAmount] = useState("");
 
-  const userStore = useUserStore()
+  const userStore = useUserStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,11 +21,23 @@ export default function TransactionsPage() {
   return (
     <div className="bg-[#78A3D4] min-h-screen flex justify-center items-center text-black">
       <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">บันทึกรายการ</h2>
-        <p className='text-black font-xl text-center'>สวัสดี {userStore.username}</p>
+        <MenuBar
+          onSave={() => alert("บันทึกรายการ")}
+          onCategorize={() => alert("จัดหมวดหมู่")}
+          onSummary={() => alert("สรุปผล")}
+        />
+        <br />
+        <h2 className="text-2xl font-bold text-center text-purple-700 mb-6">
+          บันทึกรายการ
+        </h2>
+        <p className="text-black font-xl text-center">
+          สวัสดี {userStore.username}
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-purple-700 font-semibold mb-1">รายรับ/รายจ่าย</label>
+            <label className="block text-purple-700 font-semibold mb-1">
+              รายรับ/รายจ่าย
+            </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
@@ -35,7 +49,9 @@ export default function TransactionsPage() {
           </div>
 
           <div>
-            <label className="block text-purple-700 font-semibold mb-1">หมวดหมู่</label>
+            <label className="block text-purple-700 font-semibold mb-1">
+              หมวดหมู่
+            </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -48,7 +64,9 @@ export default function TransactionsPage() {
           </div>
 
           <div>
-            <label className="block text-purple-700 font-semibold mb-1">จำนวนเงิน</label>
+            <label className="block text-purple-700 font-semibold mb-1">
+              จำนวนเงิน
+            </label>
             <div className="flex items-center border border-blue-300 rounded px-2 py-2">
               <span className="mr-2 text-xl">฿</span>
               <input
