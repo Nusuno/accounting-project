@@ -21,20 +21,12 @@ model User {
 model Transaction {
   id        String          @id @default(cuid())
   title     String
-  amount    Float
-  type      TransactionType
-  category  String
+  amount    Float           // เก็บ "จำนวน"
+  type      TransactionType // เก็บ "ประเภท" (INCOME หรือ EXPENSE)
+  category  String          // เก็บ "หมวดหมู่"
   createdAt DateTime        @default(now())
-
-  // ความสัมพันธ์กับผู้ใช้
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model Summary {
-  id     String @id @default(cuid())
-  title  String
-  amount Float
+  userId    String          // ID ของ User ที่เป็นเจ้าของ Transaction นี้
+  user      User            @relation(fields: [userId], references: [id]) // ความสัมพันธ์ไปยัง User
 }
 
 enum TransactionType {

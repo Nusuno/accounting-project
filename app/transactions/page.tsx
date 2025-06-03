@@ -2,19 +2,21 @@
 
 import { useState, useEffect, useTransition } from "react";
 
-// อยู่ในไฟล์เดียวกันด้านบนสุดเลยก็ได้
-async function saveTransaction(formData: FormData) {
-  // จำลองการบันทึกข้อมูล (จริงๆ ตรงนี้ควรส่งไปยัง backend)
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      console.log("บันทึกข้อมูล:", {
-        type: formData.get("type"),
-        amount: formData.get("amount"),
-        category: formData.get("category"),
-      });
-      resolve();
-    }, 500); // mock delay
+// เรียก API ไป backend เพื่อบันทึกข้อมูลลง DB
+async function saveTransaction(formData: {
+  type: "รายรับ" | "รายจ่าย";
+  amount: number;
+  category: string;
+}) {
+  const res = await fetch("/api/transactions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
   });
+
+  if (!res.ok) {
+    throw new Error("บันทึกข้อมูลไม่สำเร็จ");
+  }
 }
 
 function MenuBar() {
@@ -81,10 +83,12 @@ export default function TransactionsPage() {
       alert("ข้อมูลไม่ถูกต้อง");
       return;
     }
-    const formData = new FormData();
-    formData.append("type", type);
-    formData.append("amount", amount);
-    formData.append("category", category);
+
+    const formData = {
+      type,
+      amount: parsedAmount,
+      category,
+    };
 
     startTransition(() => {
       saveTransaction(formData)
@@ -143,7 +147,6 @@ export default function TransactionsPage() {
                 }
                 className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
               >
-                {" "}
                 <option value="รายรับ">รายรับ</option>
                 <option value="รายจ่าย">รายจ่าย</option>
               </select>
