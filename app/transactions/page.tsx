@@ -1,152 +1,165 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useTransition } from 'react';
-import { saveTransaction } from './action';
+import { useState, useEffect, useTransition } from "react";
+
+// อยู่ในไฟล์เดียวกันด้านบนสุดเลยก็ได้
+async function saveTransaction(formData: FormData) {
+  // จำลองการบันทึกข้อมูล (จริงๆ ตรงนี้ควรส่งไปยัง backend)
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      console.log("บันทึกข้อมูล:", {
+        type: formData.get("type"),
+        amount: formData.get("amount"),
+        category: formData.get("category"),
+      });
+      resolve();
+    }, 500); // mock delay
+  });
+}
 
 function MenuBar() {
   return (
     <nav className="bg-[#4200C5] text-white p-4 flex justify-between items-center shadow-md">
       <div className="font-bold text-lg">ระบบจัดการการเงิน</div>
-      <div className="space-x-6">
-        <a href="/transactions" className="hover:underline">
-          บันทึกรายรับ/รายจ่าย
-        </a>
-        <a href="/categories" className="hover:underline">
-          หมวดหมู่
-        </a>
-      </div>
     </nav>
   );
 }
 
-export default function TransactionsPage() {
-  const [type, setType] = useState<'รายรับ' | 'รายจ่าย'>('รายรับ');
-  const [category, setCategory] = useState('');
-  const [amount, setAmount] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
-  const [isPending, startTransition] = useTransition();
+interface Category {
+  id: string;
+  name: string;
+  type: "รายรับ" | "รายจ่าย";
+}
 
-  // โหลดหมวดหมู่จาก localStorage ตามประเภท
-  function loadCategories(currentType: 'รายรับ' | 'รายจ่าย') {
-    const stored = localStorage.getItem('categories');
+export default function TransactionsPage() {
+  const [type, setType] = useState<"รายรับ" | "รายจ่าย">("รายรับ");
+  const [category, setCategory] = useState("");
+  const [amount, setAmount] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isPending, startTransition] = useTransition();
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryNameInput, setCategoryNameInput] = useState("");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("categories");
     if (stored) {
       try {
-        const allCategories = JSON.parse(stored) as { id: string; name: string; type: string }[];
-        const filtered = allCategories
-          .filter((c) => c.type === currentType)
-          .map((c) => c.name);
-        setCategories(filtered);
-        setCategory(filtered.length > 0 ? filtered[0] : '');
+        const parsed = JSON.parse(stored) as Category[];
+        setCategories(parsed);
       } catch {
         setCategories([]);
-        setCategory('');
       }
     } else {
-      setCategories([]);
-      setCategory('');
-    }
-  }
-
-  // ตั้งหมวดหมู่เริ่มต้นใน localStorage ถ้ายังไม่มี
-  useEffect(() => {
-    const stored = localStorage.getItem('categories');
-    if (!stored) {
-      const initialCategories = [
-        { id: '1', name: 'เงินเดือน', type: 'รายรับ' },
-        { id: '2', name: 'อาหาร', type: 'รายจ่าย' },
-        { id: '3', name: 'ค่าเดินทาง', type: 'รายจ่าย' },
-        { id: '4', name: 'ของใช้ส่วนตัว', type: 'รายจ่าย' },
-        { id: '5', name: 'อื่นๆ', type: 'รายจ่าย' },
+      const initial: Category[] = [
+        { id: "1", name: "เงินเดือน", type: "รายรับ" },
+        { id: "2", name: "อาหาร", type: "รายจ่าย" },
       ];
-      localStorage.setItem('categories', JSON.stringify(initialCategories));
+      localStorage.setItem("categories", JSON.stringify(initial));
+      setCategories(initial);
     }
-    loadCategories(type);
-  },);
+  }, []);
 
-  // โหลดหมวดหมู่เมื่อเปลี่ยนประเภท
-  useEffect(() => {
-    loadCategories(type);
-  }, [type]);
+  const filteredCategories = categories.filter((c) => c.type === type);
 
-  // ฟัง event กรณีหมวดหมู่มีการอัพเดต (จากหน้าอื่น ๆ)
   useEffect(() => {
-    function onCategoriesUpdated() {
-      loadCategories(type);
+    if (filteredCategories.length > 0) {
+      setCategory(filteredCategories[0].name);
+    } else {
+      setCategory("");
     }
-    window.addEventListener('categoriesUpdated', onCategoriesUpdated);
-    return () => window.removeEventListener('categoriesUpdated', onCategoriesUpdated);
-  }, [type]);
+  }, [type, categories]);
 
-  // ส่งข้อมูลบันทึก
+  const saveCategoriesToLocalStorage = (updated: Category[]) => {
+    localStorage.setItem("categories", JSON.stringify(updated));
+    setCategories(updated);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      alert('กรุณากรอกจำนวนเงินให้ถูกต้อง');
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || !category) {
+      alert("ข้อมูลไม่ถูกต้อง");
       return;
     }
-    if (!category) {
-      alert('กรุณาเลือกหมวดหมู่');
-      return;
-    }
-
     const formData = new FormData();
-    formData.append('type', type);
-    formData.append('amount', amount);
-    formData.append('category', category);
+    formData.append("type", type);
+    formData.append("amount", amount);
+    formData.append("category", category);
 
     startTransition(() => {
       saveTransaction(formData)
         .then(() => {
-          setAmount('');
-          alert('✅ บันทึกสำเร็จ');
+          setAmount("");
+          alert("✅ บันทึกสำเร็จ");
         })
-        .catch((err) => alert('❌ บันทึกล้มเหลว: ' + err.message));
+        .catch((err) => alert("❌ ล้มเหลว: " + err.message));
     });
+  };
+
+  const handleAddCategory = () => {
+    if (!categoryNameInput.trim()) return;
+    const newCat: Category = {
+      id: Date.now().toString(),
+      name: categoryNameInput.trim(),
+      type,
+    };
+    saveCategoriesToLocalStorage([...categories, newCat]);
+    setCategoryNameInput("");
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    if (confirm("แน่ใจว่าต้องการลบหมวดหมู่นี้?")) {
+      const updated = categories.filter((c) => c.id !== id);
+      saveCategoriesToLocalStorage(updated);
+    }
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !categoryNameInput.trim()) return;
+    const updated = categories.map((c) =>
+      c.id === editingCategory.id ? { ...c, name: categoryNameInput.trim() } : c
+    );
+    saveCategoriesToLocalStorage(updated);
+    setEditingCategory(null);
+    setCategoryNameInput("");
   };
 
   return (
     <div className="bg-[#78A3D4] min-h-screen flex flex-col text-[#4200C5]">
       <MenuBar />
       <main className="flex-grow flex flex-col items-center px-4">
-        <div className="bg-[#FFFFFF] p-8 rounded-md shadow-md w-full max-w-md mt-10 mb-6">
-          <h2 className="text-2xl font-bold text-center mb-6 text-[#4200C5]">
-            หน้าบันทึกรายรับ/รายจ่าย
+        <div className="bg-white p-8 rounded-md shadow-md w-full max-w-md mt-10 mb-6">
+          <h2 className="text-2xl font-bold text-center mb-6">
+            บันทึกรายรับ/รายจ่าย
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* เลือกประเภท */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block font-semibold mb-2 text-[#4200C5]">เลือกประเภท</label>
+              <label>เลือกประเภท</label>
               <select
                 value={type}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === 'รายรับ' || val === 'รายจ่าย') setType(val);
-                }}
-                className="w-full border border-[#78A3D4] rounded px-4 py-3 text-[#4200C5] focus:outline-none focus:ring-2 focus:ring-[#222CF3] transition"
-                required
+                onChange={(e) =>
+                  setType(e.target.value as "รายรับ" | "รายจ่าย")
+                }
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
               >
+                {" "}
                 <option value="รายรับ">รายรับ</option>
                 <option value="รายจ่าย">รายจ่าย</option>
               </select>
             </div>
 
-            {/* หมวดหมู่ */}
             <div>
-              <label className="block font-semibold mb-2 text-[#4200C5]">หมวดหมู่</label>
+              <label>หมวดหมู่</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full border border-[#78A3D4] rounded px-4 py-3 text-[#4200C5] focus:outline-none focus:ring-2 focus:ring-[#222CF3] transition"
-                disabled={categories.length === 0}
-                required
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
               >
-                {categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                {filteredCategories.length > 0 ? (
+                  filteredCategories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
                     </option>
                   ))
                 ) : (
@@ -155,30 +168,94 @@ export default function TransactionsPage() {
               </select>
             </div>
 
-            {/* จำนวนเงิน */}
             <div>
-              <label className="block font-semibold mb-2 text-[#4200C5]">จำนวนเงิน</label>
+              <label>จำนวนเงิน</label>
               <input
                 type="number"
-                min="0"
-                step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="กรอกจำนวนเงิน"
-                className="w-full border border-[#78A3D4] rounded px-4 py-3 text-[#4200C5] focus:outline-none focus:ring-2 focus:ring-[#222CF3] transition"
-                required
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
               />
             </div>
 
-            {/* ปุ่มบันทึก */}
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-[#222CF3] text-white rounded border border-[#78A3D4] px-6 py-3 font-semibold hover:bg-[#1a22b0] transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-[#222CF3] text-white py-2 rounded"
             >
-              {isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+              {isPending ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </form>
+        </div>
+
+        {/* จัดการหมวดหมู่ */}
+        <div className="bg-white p-6 rounded-md shadow-md w-full max-w-md">
+          <h3 className="text-xl font-semibold mb-4">
+            จัดการหมวดหมู่ ({type})
+          </h3>
+
+          <div className="flex mb-4 gap-2">
+            <input
+              value={categoryNameInput}
+              onChange={(e) => setCategoryNameInput(e.target.value)}
+              placeholder="ชื่อหมวดหมู่"
+              className="flex-1 border px-3 py-2"
+            />
+            {editingCategory ? (
+              <>
+                <button
+                  onClick={handleUpdateCategory}
+                  className="bg-green-500 text-white px-3 py-1 rounded"
+                >
+                  บันทึก
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingCategory(null);
+                    setCategoryNameInput("");
+                  }}
+                  className="text-gray-500"
+                >
+                  ยกเลิก
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleAddCategory}
+                className="bg-blue-500 text-white px-3 py-1 rounded"
+              >
+                เพิ่ม
+              </button>
+            )}
+          </div>
+
+          <ul className="space-y-2">
+            {filteredCategories.map((cat) => (
+              <li
+                key={cat.id}
+                className="flex justify-between items-center border p-2 rounded"
+              >
+                <span>{cat.name}</span>
+                <div className="space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingCategory(cat);
+                      setCategoryNameInput(cat.name);
+                    }}
+                    className="text-yellow-600"
+                  >
+                    แก้ไข
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    className="text-red-600"
+                  >
+                    ลบ
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </main>
     </div>

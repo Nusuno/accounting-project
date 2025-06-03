@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "prisma:migrate": "npx prisma migrate dev",
-    "prisma:studio": "npx prisma studio"
+    "prisma:studio": "npx prisma studio",
+    "prisma:generate": "npx prisma generate"
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
@@ -21,8 +22,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
+    "recharts": "^2.15.3",
     "sqlite3": "^5.1.7",
     "uuid": "^11.1.0",
+    "zod": "^3.25.49",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

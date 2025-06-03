@@ -31,6 +31,12 @@ model Transaction {
   user   User   @relation(fields: [userId], references: [id])
 }
 
+model Summary {
+  id     String @id @default(cuid())
+  title  String
+  amount Float
+}
+
 enum TransactionType {
   INCOME
   EXPENSE
