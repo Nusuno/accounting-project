@@ -4,7 +4,6 @@ import { useState, useEffect, useTransition } from "react";
 import { useUserStore } from "@/store/user";
 import { useRouter } from "next/navigation";
 import MenuBar from "@/components/MenuBar";
-import { createTransactionAction as saveTransactionAction } from "../api/transactions/route";
 
 interface Category {
   id: string;
@@ -82,26 +81,35 @@ export default function TransactionsPage() {
     formDataPayload.append("userId", currentUserId);
 
     startTransition(() => {
-      saveTransactionAction(formDataPayload)
-        .then((response) => {
-          if (response.success) {
+      fetch('/api/transactions', { //  ใช้ fetch เพื่อเรียก API
+        method: 'POST',
+        body: formDataPayload,
+      })
+        .then(async (res) => {
+          const responseData = await res.json(); // แปลง response เป็น JSON
+          if (res.ok && responseData.success) { // ตรวจสอบทั้ง res.ok และ responseData.success
             setAmount("");
-            alert(response.message || "✅ บันทึกสำเร็จ!");
+            alert(responseData.message || "✅ บันทึกสำเร็จ!");
           } else {
             const errorMessage =
-              response.message || "❌ เกิดข้อผิดพลาดในการบันทึก";
-            if (response.errors) {
-              console.error("Validation errors:", response.errors);
+              responseData.message || "❌ เกิดข้อผิดพลาดในการบันทึก";
+            if (responseData.errors) {
+              console.error("Validation errors:", responseData.errors);
+              // อาจจะแสดง error ที่ละเอียดขึ้นให้ผู้ใช้
+              // เช่น วน loop แสดง errors ทั้งหมด
             }
             alert(errorMessage);
           }
         })
         .catch((err) => {
           console.error("Submit error:", err);
-          alert(
-            "❌ เกิดข้อผิดพลาดในการส่งข้อมูล: " +
-              (err.message || "กรุณาลองใหม่อีกครั้ง")
-          );
+          let errorMessage = "❌ เกิดข้อผิดพลาดในการส่งข้อมูล: ";
+          if (err instanceof Error) {
+            errorMessage += err.message;
+          } else {
+            errorMessage += "กรุณาลองใหม่อีกครั้ง";
+          }
+          alert(errorMessage);
         });
     });
   };
