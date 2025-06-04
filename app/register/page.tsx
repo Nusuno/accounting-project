@@ -4,7 +4,6 @@ import { Button, Form, Input, message } from "antd";
 import type { FormProps } from "antd";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { RegisterUser } from "../api/register/route";
 
 type FieldType = {
   username: string;
@@ -21,21 +20,36 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    const result = await RegisterUser(values.username, values.password);
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+        }),
+      });
 
-    if (result.success) {
-      message.success(result.message);
-      const isConfirmed = window.confirm(
-        "สมัครสมาชิกสำเร็จแล้ว กลับเข้าสู่หน้า เข้าสู่ระบบหรือไม่"
-      );
-      if (isConfirmed) {
-        router.push("/");
+      const result = await response.json();
+
+      if (response.ok) { // Check if response status is 2xx
+        message.success(result.message || "สมัครสมาชิกสำเร็จ");
+        const isConfirmed = window.confirm(
+          "สมัครสมาชิกสำเร็จแล้ว กลับเข้าสู่หน้า เข้าสู่ระบบหรือไม่"
+        );
+        if (isConfirmed) {
+          router.push("/");
+        }
+      } else {
+        window.alert(result.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
       }
-    } else {
-      window.alert(result.message);
+    } catch (error) {
+      console.error("Registration request failed:", error);
+      window.alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
     }
   };
-
   const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = () => {
     message.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง");
   };

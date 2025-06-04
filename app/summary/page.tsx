@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { useUserStore } from "@/store/user"; 
+import { useUserStore } from "@/store/user";
 import {
   BarChart,
   Bar,
@@ -13,7 +13,6 @@ import {
 } from "recharts";
 import { useRouter } from "next/navigation";
 import MenuBar from "@/components/MenuBar";
-
 
 type Transaction = {
   id: string;
@@ -32,8 +31,8 @@ type ChartData = {
 type ViewMode = "overall" | "monthly" | "daily";
 
 export default function SummaryPage() {
-  const router = useRouter(); 
-  const currentUserId = useUserStore((state) => state.id); 
+  const router = useRouter();
+  const currentUserId = useUserStore((state) => state.id);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("overall");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -43,19 +42,22 @@ export default function SummaryPage() {
   const [displayTotalExpense, setDisplayTotalExpense] = useState<number>(0);
 
   useEffect(() => {
-    
     if (!currentUserId) {
-      router.push("/"); 
-      return; 
+      router.push("/");
+      return;
     }
 
-    
-    
     if (currentUserId) {
-      fetch(`/api/transactions/user/${currentUserId}`) 
+      fetch(`/api/summary`, {
+        // เปลี่ยน URL ให้ตรงกับ route ที่แก้ไข
+        method: "POST", // เปลี่ยน method เป็น POST
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: currentUserId }), // ส่ง userId ใน body
+      })
         .then((res) => {
           if (!res.ok) {
-            
             res.json().then((errData) => {
               console.error(
                 "API Error:",
@@ -67,7 +69,6 @@ export default function SummaryPage() {
           return res.json();
         })
         .then((data: Transaction[]) => {
-          
           const sortedData = data.sort(
             (a, b) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -76,12 +77,12 @@ export default function SummaryPage() {
         })
         .catch((error) => {
           console.error("Error fetching transactions:", error);
-          setTransactions([]); 
+          setTransactions([]);
         });
     } else {
-      setTransactions([]); 
+      setTransactions([]);
     }
-  }, [currentUserId, router]); 
+  }, [currentUserId, router]);
 
   const uniqueMonths = useMemo(() => {
     if (!transactions.length) return [];
