@@ -48,14 +48,7 @@ export default function SummaryPage() {
     }
 
     if (currentUserId) {
-      fetch(`/api/summary`, {
-        // เปลี่ยน URL ให้ตรงกับ route ที่แก้ไข
-        method: "POST", // เปลี่ยน method เป็น POST
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: currentUserId }), // ส่ง userId ใน body
-      })
+      fetch(`/api/transactions/user/${currentUserId}`)
         .then((res) => {
           if (!res.ok) {
             res.json().then((errData) => {
