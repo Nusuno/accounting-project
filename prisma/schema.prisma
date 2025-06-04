@@ -11,20 +11,20 @@ model User {
   id        String   @id @default(cuid())
   username  String   @unique
   password  String
-  createdAt DateTime @default(now()) // อาจจะเก็บไว้หรือลบก็ได้ถ้าไม่ใช้เลย
-  updatedAt DateTime @updatedAt // อาจจะเก็บไว้หรือลบก็ได้ถ้าไม่ใช้เลย
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
 }
 
 model Transaction {
   id        String   @id @default(cuid())
   amount    Float
-  type      TransactionType
+  type      String
   category  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-enum TransactionType {
-  INCOME
-  EXPENSE
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
+import { useUserStore } from "@/store/user"; // 1. Import useUserStore
 import {
   BarChart,
   Bar,
@@ -10,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import MenuBar from "@/components/MenuBar";
 
 // เพิ่ม property ที่ขาดไปใน Transaction
 type Transaction = {
@@ -28,7 +30,9 @@ type ChartData = {
 
 type ViewMode = "overall" | "monthly" | "daily";
 
+
 export default function SummaryPage() {
+  const currentUserId = useUserStore((state) => state.id); // 2. ดึง userId จาก store โดยตรง
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("overall");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -38,16 +42,38 @@ export default function SummaryPage() {
   const [displayTotalExpense, setDisplayTotalExpense] = useState<number>(0);
 
   useEffect(() => {
-    fetch("/api/transactions")
-      .then((res) => res.json())
-      .then((data: Transaction[]) => {
-        const sortedData = data.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setTransactions(sortedData);
-      });
-  }, []);
+    // 3. แก้ไขการ fetch ข้อมูลให้ใช้ userId
+    if (currentUserId) {
+      fetch(`/api/transactions/user/${currentUserId}`) // เรียก API route ใหม่
+        .then((res) => {
+          if (!res.ok) {
+            // ถ้า API คืนค่า error (เช่น status 500)
+            res.json().then((errData) => {
+              console.error(
+                "API Error:",
+                errData.message || `HTTP error! status: ${res.status}`
+              );
+            });
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data: Transaction[]) => {
+          // API route ใหม่จะคืนค่า Transaction[] โดยตรง
+          const sortedData = data.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setTransactions(sortedData);
+        })
+        .catch((error) => {
+          console.error("Error fetching transactions:", error);
+          setTransactions([]); // ตั้งค่าเป็น array ว่างหากเกิดข้อผิดพลาด
+        });
+    } else {
+      setTransactions([]); // หากไม่มี userId ให้ล้างข้อมูล transactions
+    }
+  }, [currentUserId]); // ให้ useEffect ทำงานใหม่เมื่อ currentUserId เปลี่ยน
 
   const uniqueMonths = useMemo(() => {
     if (!transactions.length) return [];
@@ -137,6 +163,7 @@ export default function SummaryPage() {
   }, [transactions, viewMode, selectedMonth, selectedDate]);
 
   return (
+    <div><MenuBar/>
     <div className="bg-[#78A3D4] min-h-screen text-[#4200C5] py-8 px-4">
       <div className="max-w-4xl mx-auto bg-[#FFFFFF] p-6 sm:p-8 rounded-lg shadow-xl">
         <h1 className="text-3xl font-bold text-center mb-8 text-[#4200C5]">
@@ -246,6 +273,7 @@ export default function SummaryPage() {
           </p>
         )}
       </div>
+    </div>
     </div>
   );
 }

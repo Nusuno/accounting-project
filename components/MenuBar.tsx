@@ -1,42 +1,52 @@
 "use client";
-import React from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { HiOutlineClipboardList, HiOutlineTag, HiOutlineChartBar } from "react-icons/hi";
 
-const MenuBar: React.FC = () => {
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/user";
+import Link from "next/link"; // Import Link for navigation
+
+function MenuBar() {
   const router = useRouter();
-  const pathname = usePathname();
+  // ดึง username และ clearUser function จาก store แยกกัน
+  const username = useUserStore((state) => state.username);
+  const clearUser = useUserStore((state) => state.clearUser);
 
-  const buttons = [
-    { path: "/transactions", label: "บันทึกรายการ", icon: <HiOutlineClipboardList size={20} /> },
-    { path: "/categories", label: "จัดหมวดหมู่", icon: <HiOutlineTag size={20} /> },
-    { path: "/summary", label: "สรุปผล", icon: <HiOutlineChartBar size={20} /> },
-  ];
-
-  const getButtonClass = (path: string) =>
-    `flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer select-none
-    ${
-      pathname === path
-        ? "bg-gradient-to-r from-purple-700 to-indigo-600 text-white shadow-lg"
-        : "bg-white text-[#4200C5] border border-[#4200C5] hover:bg-indigo-100 hover:text-indigo-700 hover:shadow-md"
-    }`;
+  const handleLogout = () => {
+    clearUser(); // ล้างข้อมูลผู้ใช้ใน client-side store
+    // ในแอปพลิเคชันจริง ควรมีการเรียก API ไปยัง server เพื่อเคลียร์ session
+    router.push("/"); // Redirect ไปหน้า login
+    alert("ออกจากระบบสำเร็จแล้ว");
+  };
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex justify-around items-center bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-xl shadow-xl sticky top-0 z-50">
-      {buttons.map(({ path, label, icon }) => (
-        <button
-          key={path}
-          onClick={() => router.push(path)}
-          className={getButtonClass(path)}
-          aria-current={pathname === path ? "page" : undefined}
-          type="button"
-        >
-          {icon}
-          {label}
-        </button>
-      ))}
-    </div>
+    <nav className="bg-[#4200C5] text-white p-4 flex justify-between items-center shadow-md">
+      <div className="font-bold text-lg">ระบบจัดการการเงิน</div>
+      {username ? (
+        <div className="flex items-center space-x-4">
+          <Link
+            href="/transactions"
+            className="px-3 py-2 rounded-md text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+          >
+            รายการ
+          </Link>
+          <Link
+            href="/summary"
+            className="px-3 py-2 rounded-md text-sm font-medium text-white bg-green-500 hover:bg-green-600 transition-colors"
+          >
+            สรุป
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="px-3 py-2 rounded-md text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors"
+          >
+            ออกจากระบบ
+          </button>
+          <div className="font-bold text-lg">ผู้ใช้งาน: <span className="font-semibold">{username}</span></div>
+        </div>
+      ) : (
+        <div className="text-sm text-gray-300">(ยังไม่ได้เข้าสู่ระบบ)</div>
+      )}
+    </nav>
   );
-};
+}
 
 export default MenuBar;

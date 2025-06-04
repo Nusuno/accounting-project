@@ -12,6 +12,7 @@
     "prisma:generate": "npx prisma generate"
   },
   "dependencies": {
+    "@ant-design/compatible": "^5.1.4",
     "@ant-design/nextjs-registry": "^1.0.2",
     "@prisma/client": "^6.8.1",
     "antd": "^5.25.4",

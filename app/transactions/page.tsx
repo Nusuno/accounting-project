@@ -2,30 +2,13 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useUserStore } from "@/store/user"; // 1. Import useUserStore
+import MenuBar from "@/components/MenuBar"; // Import MenuBar component
 import { createTransactionAction as saveTransactionAction } from "./action";
 
 interface Category {
   id: string;
   name: string;
   type: "รายรับ" | "รายจ่าย";
-}
-
-// 2. แก้ไข MenuBar เพื่อแสดงชื่อผู้ใช้
-function MenuBar() {
-  const username = useUserStore((state) => state.username);
-
-  return (
-    <nav className="bg-[#4200C5] text-white p-4 flex justify-between items-center shadow-md">
-      <div className="font-bold text-lg">ระบบจัดการการเงิน</div>
-      {username ? (
-        <div className="font-blod text-lg">
-          ผู้ใช้งาน: <span className="font-semibold">{username}</span>
-        </div>
-      ) : (
-        <div className="text-sm text-gray-300">(ยังไม่ได้เข้าสู่ระบบ)</div>
-      )}
-    </nav>
-  );
 }
 export default function TransactionsPage() {
   const [type, setType] = useState<"รายรับ" | "รายจ่าย">("รายรับ");
@@ -35,14 +18,14 @@ export default function TransactionsPage() {
   const [isPending, startTransition] = useTransition();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryNameInput, setCategoryNameInput] = useState("");
-  const { setUser, username: currentUsernameInStore } = useUserStore(); // ดึง setUser และ username มาจาก store
+  const { setUser, id: currentUserId, username: currentUsernameInStore } = useUserStore(); // ดึง id, setUser และ username มาจาก store
 
   // 3. (ตัวอย่าง) ตั้งค่าผู้ใช้ใน store หากยังไม่มี (สำหรับการทดสอบ)
   useEffect(() => {
     if (!currentUsernameInStore) {
       // ในแอปจริง ข้อมูลผู้ใช้ควรมาจากการล็อกอิน
       // console.log("ยังไม่มีผู้ใช้ใน store, กำลังตั้งค่าผู้ใช้ตัวอย่าง...");
-      // setUser("user123", "ผู้ใช้ทดสอบ");
+      // setUser("clxmq00000000abcdefgh1234", "ผู้ใช้ทดสอบ"); // ตัวอย่าง ID ผู้ใช้
     }
   }, [setUser, currentUsernameInStore]);
 
@@ -85,14 +68,20 @@ export default function TransactionsPage() {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0 || !category) {
-      alert("ข้อมูลไม่ถูกต้อง: กรุณากรอกจำนวนเงินและเลือกหมวดหมู่");
+      alert("ข้อมูลไม่ถูกต้อง: กรุณากรอกจำนวนเงินและเลือกหมวดหมู่ให้ถูกต้อง");
       return;
     }
-
+    if (!currentUserId) {
+      alert("ไม่พบข้อมูลผู้ใช้ปัจจุบัน กรุณาล็อกอินอีกครั้ง");
+      // อาจจะ redirect ไปหน้า login
+      return;
+    }
+    
     const formDataPayload = new FormData();
     formDataPayload.append("amount", parsedAmount.toString());
     formDataPayload.append("type", type === "รายรับ" ? "INCOME" : "EXPENSE");
     formDataPayload.append("category", category);
+    formDataPayload.append("userId", currentUserId); // <--- เพิ่มบรรทัดนี้
 
     startTransition(() => {
       saveTransactionAction(formDataPayload)
@@ -101,7 +90,7 @@ export default function TransactionsPage() {
             setAmount("");
             alert(response.message || "✅ บันทึกสำเร็จ!");
           } else {
-            let errorMessage =
+            const errorMessage =
               response.message || "❌ เกิดข้อผิดพลาดในการบันทึก";
             if (response.errors) {
               console.error("Validation errors:", response.errors);
@@ -288,7 +277,7 @@ export default function TransactionsPage() {
             </ul>
           ) : (
             <p className="text-gray-500 text-center">
-              ไม่มีหมวดหมู่สำหรับ "{type}"
+              ไม่มีหมวดหมู่สำหรับ {type}
             </p>
           )}
         </div>

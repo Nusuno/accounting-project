@@ -1,56 +1,58 @@
-'use server'
+// n:\Nusuno\work\rmutk3-4\3\3\web-programing\accounting-project\app\transactions\action.ts
+'use server';
 
-import { TransactionType } from '@prisma/client'
-import { prisma } from '@/lib/prisma'; // ✅ ใช้ Prisma instance จาก lib
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
-// Schema สำหรับตรวจสอบความถูกต้องของข้อมูล Transaction
-const CreateTransactionSchema = z.object({
-  amount: z.coerce
-    .number({ invalid_type_error: 'จำนวนเงินต้องเป็นตัวเลข' })
-    .positive({ message: 'จำนวนเงินต้องมากกว่า 0' }),
-  type: z.nativeEnum(TransactionType, { // ใช้ nativeEnum สำหรับ enum จาก Prisma
-    errorMap: () => ({ message: 'ประเภทรายการไม่ถูกต้อง (ต้องเป็น INCOME หรือ EXPENSE)' }),
-  }),
-  // title: z.string().min(1, { message: 'ชื่อรายการต้องไม่ว่างเปล่า' }), // ลบ title ออกจาก schema
-  category: z.string().min(1, { message: 'หมวดหมู่ต้องไม่ว่างเปล่า' }),
-})
+const TransactionSchema = z.object({
+  amount: z.number().positive({ message: 'จำนวนเงินต้องมากกว่า 0' }),
+  type: z.enum(['INCOME', 'EXPENSE'], { message: 'ประเภทรายการไม่ถูกต้อง' }),
+  category: z.string().min(1, { message: 'กรุณาเลือกหมวดหมู่' }),
+  userId: z.string().cuid({ message: 'รหัสผู้ใช้ไม่ถูกต้อง' }),
+});
 
 export async function createTransactionAction(formData: FormData) {
-  const validatedFields = CreateTransactionSchema.safeParse({
-    amount: formData.get('amount'),
-    type: formData.get('type'), // ค่าที่ได้จาก FormData จะเป็น string, Prisma จะจัดการแปลงให้ถ้า type ตรงกับ enum
-    // title: formData.get('title'), // ลบการดึง title จาก formData
-    category: formData.get('category'),
-  })
+  const rawFormData = {
+    amount: parseFloat(formData.get('amount') as string),
+    type: formData.get('type') as 'INCOME' | 'EXPENSE',
+    category: formData.get('category') as string,
+    userId: formData.get('userId') as string,
+  };
+
+  console.log('Raw form data received:', rawFormData); // เพิ่มบรรทัดนี้
+  const validatedFields = TransactionSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
+    console.error('Validation errors:', validatedFields.error.flatten().fieldErrors); // เพิ่ม log เพื่อดู error ละเอียด
     return {
       success: false,
+      message: 'ข้อมูลที่กรอกไม่ถูกต้อง', // ข้อความทั่วไป
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบข้อมูลที่กรอก',
-    }
+    };
   }
 
-  const { amount, type, category } = validatedFields.data // ลบ title ออกจาก destructuring
+  const { amount, type, category, userId } = validatedFields.data;
 
   try {
-    const newTransaction = await prisma.transaction.create({
+    const userExists = await prisma.user.findUnique({ where: { id: userId } });
+    if (!userExists) {
+      return { success: false, message: 'ไม่พบผู้ใช้งานนี้' };
+    }
+
+    await prisma.transaction.create({
       data: {
         amount,
         type,
-        // title, // ลบ title ในการสร้าง transaction
         category,
+        userId,
       },
-    })
-    revalidatePath('/transactions') // ปรับ path นี้ตามหน้าที่แสดงรายการธุรกรรมของคุณ
-    return { success: true, message: 'บันทึกรายการสำเร็จ!', data: newTransaction }
+    });
+
+    revalidatePath('/transactions'); // หรือ path ที่คุณแสดงรายการ
+    return { success: true, message: 'บันทึกรายการสำเร็จ' };
   } catch (error) {
-    console.error("🔴 [Transaction Action Error] Failed to create transaction:", error);
-    return {
-      success: false,
-      message: 'เกิดข้อผิดพลาด: ไม่สามารถบันทึกรายการลงฐานข้อมูลได้ (โปรดตรวจสอบ Log ของ Server สำหรับรายละเอียดเพิ่มเติม)'
-    }
+    console.error('Error creating transaction:', error);
+    return { success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' };
   }
 }
