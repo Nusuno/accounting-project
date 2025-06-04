@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { useUserStore } from "@/store/user"; // 1. Import useUserStore
 import { createTransactionAction as saveTransactionAction } from "./action";
 
 interface Category {
@@ -9,14 +10,23 @@ interface Category {
   type: "รายรับ" | "รายจ่าย";
 }
 
+// 2. แก้ไข MenuBar เพื่อแสดงชื่อผู้ใช้
 function MenuBar() {
+  const username = useUserStore((state) => state.username);
+
   return (
     <nav className="bg-[#4200C5] text-white p-4 flex justify-between items-center shadow-md">
       <div className="font-bold text-lg">ระบบจัดการการเงิน</div>
+      {username ? (
+        <div className="font-blod text-lg">
+          ผู้ใช้งาน: <span className="font-semibold">{username}</span>
+        </div>
+      ) : (
+        <div className="text-sm text-gray-300">(ยังไม่ได้เข้าสู่ระบบ)</div>
+      )}
     </nav>
   );
 }
-
 export default function TransactionsPage() {
   const [type, setType] = useState<"รายรับ" | "รายจ่าย">("รายรับ");
   const [category, setCategory] = useState("");
@@ -25,6 +35,16 @@ export default function TransactionsPage() {
   const [isPending, startTransition] = useTransition();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryNameInput, setCategoryNameInput] = useState("");
+  const { setUser, username: currentUsernameInStore } = useUserStore(); // ดึง setUser และ username มาจาก store
+
+  // 3. (ตัวอย่าง) ตั้งค่าผู้ใช้ใน store หากยังไม่มี (สำหรับการทดสอบ)
+  useEffect(() => {
+    if (!currentUsernameInStore) {
+      // ในแอปจริง ข้อมูลผู้ใช้ควรมาจากการล็อกอิน
+      // console.log("ยังไม่มีผู้ใช้ใน store, กำลังตั้งค่าผู้ใช้ตัวอย่าง...");
+      // setUser("user123", "ผู้ใช้ทดสอบ");
+    }
+  }, [setUser, currentUsernameInStore]);
 
   useEffect(() => {
     const stored = localStorage.getItem("categories");
