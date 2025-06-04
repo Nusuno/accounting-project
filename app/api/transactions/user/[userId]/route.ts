@@ -3,7 +3,8 @@ import { getUserTransactions } from '../../../../transactions/fetchTransactions'
 
 export async function GET(
   request: NextRequest,
-  context: any // ใช้ any เพื่อเลี่ยงปัญหา type กับ Next.js 15.3.2 (Canary)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any // ใช้ any และปิด ESLint rule สำหรับบรรทัดนี้
 ) {
   // ตรวจสอบโครงสร้างของ context และ params ในขณะ runtime เนื่องจากใช้ any
   // และเพื่อให้แน่ใจว่า userId เป็น string
