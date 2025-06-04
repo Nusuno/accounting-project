@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserTransactions } from '../../../../transactions/fetchTransactions';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { userId: string } }
+  request: NextRequest, // เปลี่ยนจาก Request เป็น NextRequest
+  context: { params: { userId: string } } // ใช้ context object โดยตรง
 ) {
-  const { userId } = params;
+  const userId = context.params.userId; // ดึง userId จาก context.params
 
   if (!userId) {
     return NextResponse.json(
