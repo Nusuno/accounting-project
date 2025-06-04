@@ -5,10 +5,15 @@ export async function GET(
   request: Request,
   { params }: { params: { userId: string } }
 ) {
-  const userId = params.userId;
+  const { userId } = params;
 
   if (!userId) {
-    return NextResponse.json({ success: false, message: 'จำเป็นต้องมีรหัสผู้ใช้' }, { status: 400 });
+    // This case should ideally be caught by Next.js routing if userId is a required segment,
+    // but it's good for robustness.
+    return NextResponse.json(
+      { success: false, message: 'User ID parameter is missing' },
+      { status: 400 }
+    );
   }
 
   try {
@@ -21,9 +26,18 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(transactions);
+    // Consider what to return if no transactions are found or user doesn't exist
+    // For now, just returning the (potentially empty) array of transactions
+    return NextResponse.json(transactions, { status: 200 });
   } catch (error) {
-    console.error("Error fetching user transactions:", error);
-    return NextResponse.json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลรายการ' }, { status: 500 });
+    console.error(`Error fetching transactions for user ${userId}:`, error);
+    let errorMessage = 'An unexpected error occurred while fetching transactions.';
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    return NextResponse.json(
+      { success: false, message: 'Error fetching transactions', error: errorMessage },
+      { status: 500 }
+    );
   }
 }
