@@ -11,22 +11,17 @@ model User {
   id        String   @id @default(cuid())
   username  String   @unique
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // ความสัมพันธ์กับ Transaction
-  transactions Transaction[]
+  createdAt DateTime @default(now()) // อาจจะเก็บไว้หรือลบก็ได้ถ้าไม่ใช้เลย
+  updatedAt DateTime @updatedAt // อาจจะเก็บไว้หรือลบก็ได้ถ้าไม่ใช้เลย
 }
 
 model Transaction {
-  id        String          @id @default(cuid())
-  title     String
-  amount    Float           // เก็บ "จำนวน"
-  type      TransactionType // เก็บ "ประเภท" (INCOME หรือ EXPENSE)
-  category  String          // เก็บ "หมวดหมู่"
-  createdAt DateTime        @default(now())
-  userId    String          // ID ของ User ที่เป็นเจ้าของ Transaction นี้
-  user      User            @relation(fields: [userId], references: [id]) // ความสัมพันธ์ไปยัง User
+  id        String   @id @default(cuid())
+  amount    Float
+  type      TransactionType
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum TransactionType {

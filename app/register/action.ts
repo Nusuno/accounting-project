@@ -1,9 +1,9 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma"; // ✅ ใช้ Prisma instance จาก lib
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient(); // ❌ ลบการสร้าง instance ใหม่ที่นี่
 
 export async function RegisterUser(
   username: string,
@@ -38,6 +38,6 @@ export async function RegisterUser(
       message: "เกิดข้อผิดพลาดในการสมัครสมาชิก",
     };
   } finally {
-    await prisma.$disconnect();
+    // await prisma.$disconnect(); // ❌ ไม่จำเป็นเมื่อใช้ singleton instance
   }
 }

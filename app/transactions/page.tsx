@@ -1,22 +1,12 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { createTransactionAction as saveTransactionAction } from "./action";
 
-// เรียก API ไป backend เพื่อบันทึกข้อมูลลง DB
-async function saveTransaction(formData: {
+interface Category {
+  id: string;
+  name: string;
   type: "รายรับ" | "รายจ่าย";
-  amount: number;
-  category: string;
-}) {
-  const res = await fetch("/api/transactions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-
-  if (!res.ok) {
-    throw new Error("บันทึกข้อมูลไม่สำเร็จ");
-  }
 }
 
 function MenuBar() {
@@ -25,12 +15,6 @@ function MenuBar() {
       <div className="font-bold text-lg">ระบบจัดการการเงิน</div>
     </nav>
   );
-}
-
-interface Category {
-  id: string;
-  name: string;
-  type: "รายรับ" | "รายจ่าย";
 }
 
 export default function TransactionsPage() {
@@ -69,7 +53,8 @@ export default function TransactionsPage() {
     } else {
       setCategory("");
     }
-  }, [type, categories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, categories]); // filteredCategories ถูกคำนวณใหม่ทุกครั้งที่ type หรือ categories เปลี่ยน
 
   const saveCategoriesToLocalStorage = (updated: Category[]) => {
     localStorage.setItem("categories", JSON.stringify(updated));
@@ -80,23 +65,40 @@ export default function TransactionsPage() {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0 || !category) {
-      alert("ข้อมูลไม่ถูกต้อง");
+      alert("ข้อมูลไม่ถูกต้อง: กรุณากรอกจำนวนเงินและเลือกหมวดหมู่");
       return;
     }
 
-    const formData = {
-      type,
-      amount: parsedAmount,
-      category,
-    };
+    const formDataPayload = new FormData();
+    formDataPayload.append("amount", parsedAmount.toString());
+    formDataPayload.append("type", type === "รายรับ" ? "INCOME" : "EXPENSE");
+    formDataPayload.append("category", category);
 
     startTransition(() => {
-      saveTransaction(formData)
-        .then(() => {
-          setAmount("");
-          alert("✅ บันทึกสำเร็จ");
+      saveTransactionAction(formDataPayload)
+        .then((response) => {
+          if (response.success) {
+            setAmount("");
+            alert(response.message || "✅ บันทึกสำเร็จ!");
+          } else {
+            let errorMessage =
+              response.message || "❌ เกิดข้อผิดพลาดในการบันทึก";
+            if (response.errors) {
+              console.error("Validation errors:", response.errors);
+              // Optionally, format and append field errors to errorMessage
+              // const fieldErrors = Object.values(response.errors).flat().join(', ');
+              // errorMessage += `\nรายละเอียด: ${fieldErrors}`;
+            }
+            alert(errorMessage);
+          }
         })
-        .catch((err) => alert("❌ ล้มเหลว: " + err.message));
+        .catch((err) => {
+          console.error("Submit error:", err);
+          alert(
+            "❌ เกิดข้อผิดพลาดในการส่งข้อมูล: " +
+              (err.message || "กรุณาลองใหม่อีกครั้ง")
+          );
+        });
     });
   };
 
@@ -139,13 +141,14 @@ export default function TransactionsPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label>เลือกประเภท</label>
+              <label htmlFor="type-select">เลือกประเภท</label>
               <select
+                id="type-select"
                 value={type}
                 onChange={(e) =>
                   setType(e.target.value as "รายรับ" | "รายจ่าย")
                 }
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
+                className="w-full p-2 border border-gray-300 rounded-md"
               >
                 <option value="รายรับ">รายรับ</option>
                 <option value="รายจ่าย">รายจ่าย</option>
@@ -153,11 +156,13 @@ export default function TransactionsPage() {
             </div>
 
             <div>
-              <label>หมวดหมู่</label>
+              <label htmlFor="category-select">หมวดหมู่</label>
               <select
+                id="category-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                disabled={filteredCategories.length === 0}
               >
                 {filteredCategories.length > 0 ? (
                   filteredCategories.map((c) => (
@@ -166,33 +171,34 @@ export default function TransactionsPage() {
                     </option>
                   ))
                 ) : (
-                  <option value="">-- ไม่มีหมวดหมู่ --</option>
+                  <option value="">-- ไม่มีหมวดหมู่สำหรับประเภทนี้ --</option>
                 )}
               </select>
             </div>
 
             <div>
-              <label>จำนวนเงิน</label>
+              <label htmlFor="amount-input">จำนวนเงิน</label>
               <input
+                id="amount-input"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#4200C5] focus:border-[#4200C5]"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="0.00"
               />
             </div>
 
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-[#222CF3] text-white py-2 rounded"
+              className="w-full bg-[#222CF3] text-white py-2 rounded disabled:opacity-50"
             >
               {isPending ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </form>
         </div>
 
-        {/* จัดการหมวดหมู่ */}
-        <div className="bg-white p-6 rounded-md shadow-md w-full max-w-md">
+        <div className="bg-white p-6 rounded-md shadow-md w-full max-w-md mb-10">
           <h3 className="text-xl font-semibold mb-4">
             จัดการหมวดหมู่ ({type})
           </h3>
@@ -201,14 +207,14 @@ export default function TransactionsPage() {
             <input
               value={categoryNameInput}
               onChange={(e) => setCategoryNameInput(e.target.value)}
-              placeholder="ชื่อหมวดหมู่"
-              className="flex-1 border px-3 py-2"
+              placeholder="ชื่อหมวดหมู่ใหม่"
+              className="flex-1 border border-gray-300 px-3 py-2 rounded-md"
             />
             {editingCategory ? (
               <>
                 <button
                   onClick={handleUpdateCategory}
-                  className="bg-green-500 text-white px-3 py-1 rounded"
+                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
                 >
                   บันทึก
                 </button>
@@ -217,7 +223,7 @@ export default function TransactionsPage() {
                     setEditingCategory(null);
                     setCategoryNameInput("");
                   }}
-                  className="text-gray-500"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded"
                 >
                   ยกเลิก
                 </button>
@@ -225,40 +231,46 @@ export default function TransactionsPage() {
             ) : (
               <button
                 onClick={handleAddCategory}
-                className="bg-blue-500 text-white px-3 py-1 rounded"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
               >
                 เพิ่ม
               </button>
             )}
           </div>
 
-          <ul className="space-y-2">
-            {filteredCategories.map((cat) => (
-              <li
-                key={cat.id}
-                className="flex justify-between items-center border p-2 rounded"
-              >
-                <span>{cat.name}</span>
-                <div className="space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditingCategory(cat);
-                      setCategoryNameInput(cat.name);
-                    }}
-                    className="text-yellow-600"
-                  >
-                    แก้ไข
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(cat.id)}
-                    className="text-red-600"
-                  >
-                    ลบ
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {filteredCategories.length > 0 ? (
+            <ul className="space-y-2">
+              {filteredCategories.map((cat) => (
+                <li
+                  key={cat.id}
+                  className="flex justify-between items-center border border-gray-200 p-2 rounded"
+                >
+                  <span>{cat.name}</span>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => {
+                        setEditingCategory(cat);
+                        setCategoryNameInput(cat.name);
+                      }}
+                      className="text-yellow-600 hover:text-yellow-700"
+                    >
+                      แก้ไข
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      ลบ
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 text-center">
+              ไม่มีหมวดหมู่สำหรับ "{type}"
+            </p>
+          )}
         </div>
       </main>
     </div>
