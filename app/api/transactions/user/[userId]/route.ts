@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getUserTransactions } from '../../../../transactions/fetchTransactions';
 
 export async function GET(
   request: Request,
@@ -8,35 +8,28 @@ export async function GET(
   const { userId } = params;
 
   if (!userId) {
-    // This case should ideally be caught by Next.js routing if userId is a required segment,
-    // but it's good for robustness.
     return NextResponse.json(
       { success: false, message: 'User ID parameter is missing' },
       { status: 400 }
     );
   }
-
   try {
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        userId: userId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const result = await getUserTransactions(userId);
 
-    // Consider what to return if no transactions are found or user doesn't exist
-    // For now, just returning the (potentially empty) array of transactions
-    return NextResponse.json(transactions, { status: 200 });
-  } catch (error) {
-    console.error(`Error fetching transactions for user ${userId}:`, error);
-    let errorMessage = 'An unexpected error occurred while fetching transactions.';
-    if (error instanceof Error) {
-        errorMessage = error.message;
+    if (result.success) {
+      return NextResponse.json(result.data, { status: 200 });
+    } else {
+      // ใช้ message จาก getUserTransactions หรือ fallback message
+      return NextResponse.json(
+        { success: false, message: result.message || 'Failed to fetch transactions' },
+        { status: 500 } // หรือ 404 หาก result.message บ่งชี้ว่าไม่พบข้อมูล
+      );
     }
+  } catch (error) {
+    // Error นี้เกิดขึ้นหากมีปัญหาใน API route handler เอง, ไม่ใช่ภายใน getUserTransactions
+    console.error(`API route error for user ${userId}:`, error);
     return NextResponse.json(
-      { success: false, message: 'Error fetching transactions', error: errorMessage },
+      { success: false, message: 'An unexpected server error occurred.' },
       { status: 500 }
     );
   }
