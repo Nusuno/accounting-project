@@ -20,7 +20,7 @@ export async function GET(
         createdAt: 'desc',
       },
     });
-    // คืนค่าข้อมูลรายการโดยตรงเพื่อให้ client จัดการได้ง่าย
+
     return NextResponse.json(transactions);
   } catch (error) {
     console.error("Error fetching user transactions:", error);

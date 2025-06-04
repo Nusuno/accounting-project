@@ -1,4 +1,4 @@
-// n:\Nusuno\work\rmutk3-4\3\3\web-programing\accounting-project\app\transactions\action.ts
+
 'use server';
 
 import { z } from 'zod';
@@ -20,14 +20,14 @@ export async function createTransactionAction(formData: FormData) {
     userId: formData.get('userId') as string,
   };
 
-  console.log('Raw form data received:', rawFormData); // เพิ่มบรรทัดนี้
+  console.log('Raw form data received:', rawFormData);
   const validatedFields = TransactionSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
-    console.error('Validation errors:', validatedFields.error.flatten().fieldErrors); // เพิ่ม log เพื่อดู error ละเอียด
+    console.error('Validation errors:', validatedFields.error.flatten().fieldErrors);
     return {
       success: false,
-      message: 'ข้อมูลที่กรอกไม่ถูกต้อง', // ข้อความทั่วไป
+      message: 'ข้อมูลที่กรอกไม่ถูกต้อง',
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -49,7 +49,7 @@ export async function createTransactionAction(formData: FormData) {
       },
     });
 
-    revalidatePath('/transactions'); // หรือ path ที่คุณแสดงรายการ
+    revalidatePath('/transactions');
     return { success: true, message: 'บันทึกรายการสำเร็จ' };
   } catch (error) {
     console.error('Error creating transaction:', error);

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { useUserStore } from "@/store/user"; // 1. Import useUserStore
-import MenuBar from "@/components/MenuBar"; // Import MenuBar component
+import { useUserStore } from "@/store/user";
+import MenuBar from "@/components/MenuBar";
 import { createTransactionAction as saveTransactionAction } from "./action";
 
 interface Category {
@@ -18,14 +18,14 @@ export default function TransactionsPage() {
   const [isPending, startTransition] = useTransition();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryNameInput, setCategoryNameInput] = useState("");
-  const { setUser, id: currentUserId, username: currentUsernameInStore } = useUserStore(); // ดึง id, setUser และ username มาจาก store
+  const {
+    setUser,
+    id: currentUserId,
+    username: currentUsernameInStore,
+  } = useUserStore();
 
-  // 3. (ตัวอย่าง) ตั้งค่าผู้ใช้ใน store หากยังไม่มี (สำหรับการทดสอบ)
   useEffect(() => {
     if (!currentUsernameInStore) {
-      // ในแอปจริง ข้อมูลผู้ใช้ควรมาจากการล็อกอิน
-      // console.log("ยังไม่มีผู้ใช้ใน store, กำลังตั้งค่าผู้ใช้ตัวอย่าง...");
-      // setUser("clxmq00000000abcdefgh1234", "ผู้ใช้ทดสอบ"); // ตัวอย่าง ID ผู้ใช้
     }
   }, [setUser, currentUsernameInStore]);
 
@@ -56,8 +56,7 @@ export default function TransactionsPage() {
     } else {
       setCategory("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, categories]); // filteredCategories ถูกคำนวณใหม่ทุกครั้งที่ type หรือ categories เปลี่ยน
+  }, [type, categories]);
 
   const saveCategoriesToLocalStorage = (updated: Category[]) => {
     localStorage.setItem("categories", JSON.stringify(updated));
@@ -73,15 +72,14 @@ export default function TransactionsPage() {
     }
     if (!currentUserId) {
       alert("ไม่พบข้อมูลผู้ใช้ปัจจุบัน กรุณาล็อกอินอีกครั้ง");
-      // อาจจะ redirect ไปหน้า login
       return;
     }
-    
+
     const formDataPayload = new FormData();
     formDataPayload.append("amount", parsedAmount.toString());
     formDataPayload.append("type", type === "รายรับ" ? "INCOME" : "EXPENSE");
     formDataPayload.append("category", category);
-    formDataPayload.append("userId", currentUserId); // <--- เพิ่มบรรทัดนี้
+    formDataPayload.append("userId", currentUserId);
 
     startTransition(() => {
       saveTransactionAction(formDataPayload)
@@ -94,9 +92,6 @@ export default function TransactionsPage() {
               response.message || "❌ เกิดข้อผิดพลาดในการบันทึก";
             if (response.errors) {
               console.error("Validation errors:", response.errors);
-              // Optionally, format and append field errors to errorMessage
-              // const fieldErrors = Object.values(response.errors).flat().join(', ');
-              // errorMessage += `\nรายละเอียด: ${fieldErrors}`;
             }
             alert(errorMessage);
           }

@@ -2,18 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/user";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
 
 function MenuBar() {
   const router = useRouter();
-  // ดึง username และ clearUser function จาก store แยกกัน
   const username = useUserStore((state) => state.username);
   const clearUser = useUserStore((state) => state.clearUser);
 
   const handleLogout = () => {
-    clearUser(); // ล้างข้อมูลผู้ใช้ใน client-side store
-    // ในแอปพลิเคชันจริง ควรมีการเรียก API ไปยัง server เพื่อเคลียร์ session
-    router.push("/"); // Redirect ไปหน้า login
+    clearUser();
+    router.push("/");
     alert("ออกจากระบบสำเร็จแล้ว");
   };
 
@@ -40,7 +38,9 @@ function MenuBar() {
           >
             ออกจากระบบ
           </button>
-          <div className="font-bold text-lg">ผู้ใช้งาน: <span className="font-semibold">{username}</span></div>
+          <div className="font-bold text-lg">
+            ผู้ใช้งาน: <span className="font-semibold">{username}</span>
+          </div>
         </div>
       ) : (
         <div className="text-sm text-gray-300">(ยังไม่ได้เข้าสู่ระบบ)</div>

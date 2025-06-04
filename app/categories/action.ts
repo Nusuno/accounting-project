@@ -8,7 +8,7 @@ type Category = {
   type: 'รายรับ' | 'รายจ่าย';
 };
 
-// จำลองฐานข้อมูลชั่วคราว (In-memory)
+
 let categoryList: Category[] = [
   { id: '1', name: 'เงินเดือน', type: 'รายรับ' },
   { id: '2', name: 'อาหาร', type: 'รายจ่าย' },
