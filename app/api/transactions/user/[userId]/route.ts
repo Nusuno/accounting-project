@@ -1,18 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server'; // แนะนำให้ใช้ type import
 import { getUserTransactions } from '../../../../transactions/fetchTransactions';
 
 export async function GET(
-  request: NextRequest, // เปลี่ยนจาก Request เป็น NextRequest
-  context: { params: { userId: string } } // ใช้ context object โดยตรง
+  request: NextRequest,
+  context: any // ใช้ any เพื่อเลี่ยงปัญหา type กับ Next.js 15.3.2 (Canary)
 ) {
-  const userId = context.params.userId; // ดึง userId จาก context.params
-
-  if (!userId) {
+  // ตรวจสอบโครงสร้างของ context และ params ในขณะ runtime เนื่องจากใช้ any
+  // และเพื่อให้แน่ใจว่า userId เป็น string
+  if (
+    !context ||
+    typeof context !== 'object' ||
+    !context.params ||
+    typeof context.params !== 'object' ||
+    typeof context.params.userId !== 'string' ||
+    context.params.userId.trim() === ''
+  ) {
     return NextResponse.json(
-      { success: false, message: 'User ID parameter is missing' },
+      { success: false, message: 'User ID parameter is missing or invalid' },
       { status: 400 }
     );
   }
+  const userId: string = context.params.userId;
+
   try {
     const result = await getUserTransactions(userId);
 
