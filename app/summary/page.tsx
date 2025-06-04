@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { useUserStore } from "@/store/user"; // 1. Import useUserStore
+import { useUserStore } from "@/store/user"; 
 import {
   BarChart,
   Bar,
@@ -14,7 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import MenuBar from "@/components/MenuBar";
 
-// เพิ่ม property ที่ขาดไปใน Transaction
+
 type Transaction = {
   id: string;
   createdAt: string;
@@ -32,8 +32,8 @@ type ChartData = {
 type ViewMode = "overall" | "monthly" | "daily";
 
 export default function SummaryPage() {
-  const router = useRouter(); // ใช้ useRouter
-  const currentUserId = useUserStore((state) => state.id); // 2. ดึง userId จาก store โดยตรง
+  const router = useRouter(); 
+  const currentUserId = useUserStore((state) => state.id); 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("overall");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -43,19 +43,19 @@ export default function SummaryPage() {
   const [displayTotalExpense, setDisplayTotalExpense] = useState<number>(0);
 
   useEffect(() => {
-    // ตรวจสอบการล็อกอินและ redirect หากไม่ได้ล็อกอิน
+    
     if (!currentUserId) {
-      router.push("/"); // Redirect ไปหน้า login
-      return; // หยุดการ fetch ข้อมูล
+      router.push("/"); 
+      return; 
     }
 
-    // ถ้าล็อกอินอยู่ ให้ fetch ข้อมูล
-    // 3. แก้ไขการ fetch ข้อมูลให้ใช้ userId
+    
+    
     if (currentUserId) {
-      fetch(`/api/transactions/user/${currentUserId}`) // เรียก API route ใหม่
+      fetch(`/api/transactions/user/${currentUserId}`) 
         .then((res) => {
           if (!res.ok) {
-            // ถ้า API คืนค่า error (เช่น status 500)
+            
             res.json().then((errData) => {
               console.error(
                 "API Error:",
@@ -67,7 +67,7 @@ export default function SummaryPage() {
           return res.json();
         })
         .then((data: Transaction[]) => {
-          // API route ใหม่จะคืนค่า Transaction[] โดยตรง
+          
           const sortedData = data.sort(
             (a, b) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -76,12 +76,12 @@ export default function SummaryPage() {
         })
         .catch((error) => {
           console.error("Error fetching transactions:", error);
-          setTransactions([]); // ตั้งค่าเป็น array ว่างหากเกิดข้อผิดพลาด
+          setTransactions([]); 
         });
     } else {
-      setTransactions([]); // หากไม่มี userId ให้ล้างข้อมูล transactions
+      setTransactions([]); 
     }
-  }, [currentUserId, router]); // เพิ่ม router ใน dependency array
+  }, [currentUserId, router]); 
 
   const uniqueMonths = useMemo(() => {
     if (!transactions.length) return [];
@@ -171,117 +171,118 @@ export default function SummaryPage() {
   }, [transactions, viewMode, selectedMonth, selectedDate]);
 
   return (
-    <div><MenuBar/>
-    <div className="bg-[#78A3D4] min-h-screen text-[#4200C5] py-8 px-4">
-      <div className="max-w-4xl mx-auto bg-[#FFFFFF] p-6 sm:p-8 rounded-lg shadow-xl">
-        <h1 className="text-3xl font-bold text-center mb-8 text-[#4200C5]">
-          แดชบอร์ดสรุปสถานะทางการเงิน
-        </h1>
+    <div>
+      <MenuBar />
+      <div className="bg-[#78A3D4] min-h-screen text-[#4200C5] py-8 px-4">
+        <div className="max-w-4xl mx-auto bg-[#FFFFFF] p-6 sm:p-8 rounded-lg shadow-xl">
+          <h1 className="text-3xl font-bold text-center mb-8 text-[#4200C5]">
+            แดชบอร์ดสรุปสถานะทางการเงิน
+          </h1>
 
-        <div className="mb-6 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-          <div className="flex space-x-2">
-            {(["overall", "monthly", "daily"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => {
-                  setViewMode(mode);
-                  if (mode !== "monthly") setSelectedMonth("");
-                  if (mode !== "daily") setSelectedDate("");
-                }}
-                className={`px-4 py-2 rounded-md font-semibold transition-colors
+          <div className="mb-6 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex space-x-2">
+              {(["overall", "monthly", "daily"] as ViewMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => {
+                    setViewMode(mode);
+                    if (mode !== "monthly") setSelectedMonth("");
+                    if (mode !== "daily") setSelectedDate("");
+                  }}
+                  className={`px-4 py-2 rounded-md font-semibold transition-colors
                   ${
                     viewMode === mode
                       ? "bg-[#4200C5] text-white"
                       : "bg-gray-200 text-[#4200C5] hover:bg-gray-300"
                   }`}
+                >
+                  {mode === "overall"
+                    ? "ภาพรวม"
+                    : mode === "monthly"
+                    ? "รายเดือน"
+                    : "รายวัน"}
+                </button>
+              ))}
+            </div>
+
+            {viewMode === "monthly" && uniqueMonths.length > 0 && (
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="p-2 border border-[#78A3D4] rounded-md text-[#4200C5] focus:ring-2 focus:ring-[#4200C5]"
               >
-                {mode === "overall"
-                  ? "ภาพรวม"
-                  : mode === "monthly"
-                  ? "รายเดือน"
-                  : "รายวัน"}
-              </button>
-            ))}
+                {uniqueMonths.map((month) => (
+                  <option key={month} value={month}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+            )}
+            {viewMode === "daily" && uniqueDates.length > 0 && (
+              <select
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="p-2 border border-[#78A3D4] rounded-md text-[#4200C5] focus:ring-2 focus:ring-[#4200C5]"
+              >
+                {uniqueDates.map((date) => (
+                  <option key={date} value={date}>
+                    {date}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          {viewMode === "monthly" && uniqueMonths.length > 0 && (
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="p-2 border border-[#78A3D4] rounded-md text-[#4200C5] focus:ring-2 focus:ring-[#4200C5]"
-            >
-              {uniqueMonths.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-          )}
-          {viewMode === "daily" && uniqueDates.length > 0 && (
-            <select
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="p-2 border border-[#78A3D4] rounded-md text-[#4200C5] focus:ring-2 focus:ring-[#4200C5]"
-            >
-              {uniqueDates.map((date) => (
-                <option key={date} value={date}>
-                  {date}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center mb-8">
+            <div className="bg-[#A8D5BA] text-[#004D40] rounded-lg p-6 shadow">
+              <p className="text-xl">รายรับรวม</p>
+              <p className="text-3xl font-bold">
+                ฿{displayTotalIncome.toFixed(2)}
+              </p>
+            </div>
+            <div className="bg-[#F8BABA] text-[#7F0000] rounded-lg p-6 shadow">
+              <p className="text-xl">รายจ่ายรวม</p>
+              <p className="text-3xl font-bold">
+                ฿{displayTotalExpense.toFixed(2)}
+              </p>
+            </div>
+          </div>
+          {chartData.length > 0 ? (
+            <div style={{ width: "100%", height: 400 }} className="mb-8">
+              <ResponsiveContainer>
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 50 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#D1C4E9" />
+                  <XAxis
+                    dataKey="category"
+                    angle={-30}
+                    textAnchor="end"
+                    height={70}
+                    stroke="#4200C5"
+                    interval={0}
+                  />
+                  <YAxis stroke="#4200C5" />
+                  <Tooltip
+                    formatter={(value: number) => `฿${value.toFixed(2)}`}
+                    cursor={{ fill: "#F3E5F5" }}
+                  />
+                  <Legend wrapperStyle={{ color: "#4200C5" }} />
+                  <Bar dataKey="income" fill="#4CAF50" name="รายรับ" />
+                  <Bar dataKey="expense" fill="#F44336" name="รายจ่าย" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <p className="text-center text-[#4200C5] py-10">
+              {transactions.length === 0
+                ? "กำลังโหลดข้อมูล..."
+                : "ไม่พบข้อมูลสำหรับช่วงเวลาที่เลือก"}
+            </p>
           )}
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center mb-8">
-          <div className="bg-[#A8D5BA] text-[#004D40] rounded-lg p-6 shadow">
-            <p className="text-xl">รายรับรวม</p>
-            <p className="text-3xl font-bold">
-              ฿{displayTotalIncome.toFixed(2)}
-            </p>
-          </div>
-          <div className="bg-[#F8BABA] text-[#7F0000] rounded-lg p-6 shadow">
-            <p className="text-xl">รายจ่ายรวม</p>
-            <p className="text-3xl font-bold">
-              ฿{displayTotalExpense.toFixed(2)}
-            </p>
-          </div>
-        </div>
-        {chartData.length > 0 ? (
-          <div style={{ width: "100%", height: 400 }} className="mb-8">
-            <ResponsiveContainer>
-              <BarChart
-                data={chartData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 50 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#D1C4E9" />
-                <XAxis
-                  dataKey="category"
-                  angle={-30}
-                  textAnchor="end"
-                  height={70}
-                  stroke="#4200C5"
-                  interval={0}
-                />
-                <YAxis stroke="#4200C5" />
-                <Tooltip
-                  formatter={(value: number) => `฿${value.toFixed(2)}`}
-                  cursor={{ fill: "#F3E5F5" }}
-                />
-                <Legend wrapperStyle={{ color: "#4200C5" }} />
-                <Bar dataKey="income" fill="#4CAF50" name="รายรับ" />
-                <Bar dataKey="expense" fill="#F44336" name="รายจ่าย" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <p className="text-center text-[#4200C5] py-10">
-            {transactions.length === 0
-              ? "กำลังโหลดข้อมูล..."
-              : "ไม่พบข้อมูลสำหรับช่วงเวลาที่เลือก"}
-          </p>
-        )}
       </div>
-    </div>
     </div>
   );
 }

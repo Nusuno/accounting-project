@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useUserStore } from "@/store/user";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import MenuBar from "@/components/MenuBar";
 import { createTransactionAction as saveTransactionAction } from "./action";
 
@@ -12,7 +12,7 @@ interface Category {
   type: "รายรับ" | "รายจ่าย";
 }
 export default function TransactionsPage() {
-  const router = useRouter(); // ใช้ useRouter
+  const router = useRouter();
   const [type, setType] = useState<"รายรับ" | "รายจ่าย">("รายรับ");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
@@ -20,14 +20,14 @@ export default function TransactionsPage() {
   const [isPending, startTransition] = useTransition();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryNameInput, setCategoryNameInput] = useState("");
-  const { id: currentUserId, username: currentUsernameInStore } = useUserStore();
+  const { id: currentUserId, username: currentUsernameInStore } =
+    useUserStore();
 
-  // ตรวจสอบการล็อกอินและ redirect หากไม่ได้ล็อกอิน
   useEffect(() => {
     if (!currentUsernameInStore) {
-      router.push("/"); // Redirect ไปหน้า login
+      router.push("/");
     }
-  }, [currentUsernameInStore, router]); // เพิ่ม router ใน dependency array
+  }, [currentUsernameInStore, router]);
 
   useEffect(() => {
     const stored = localStorage.getItem("categories");
