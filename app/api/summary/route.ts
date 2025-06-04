@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { userId: string } }
+  request: Request,  
 ) {
-  const userId = params.userId;
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
 
   if (!userId) {
     return NextResponse.json({ success: false, message: 'จำเป็นต้องมีรหัสผู้ใช้' }, { status: 400 });
