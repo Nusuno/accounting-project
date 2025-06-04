@@ -2,9 +2,9 @@
 import React from "react";
 import { Button, Form, Input, message } from "antd";
 import type { FormProps } from "antd";
-import { RegisterUser } from "./action";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { RegisterUser } from "../api/register/route";
 
 type FieldType = {
   username: string;

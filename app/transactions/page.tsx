@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react";
 import { useUserStore } from "@/store/user";
 import { useRouter } from "next/navigation";
 import MenuBar from "@/components/MenuBar";
-import { createTransactionAction as saveTransactionAction } from "./action";
+import { createTransactionAction as saveTransactionAction } from "../api/transactions/route";
 
 interface Category {
   id: string;
